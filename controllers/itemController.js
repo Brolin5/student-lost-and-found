@@ -86,7 +86,7 @@ exports.getItemById = async (req, res) => {
  */
 exports.createItem = async (req, res) => {
   try {
-    const { title, description, post_type, category, location, contact_info, status } = req.body;
+    const { title, description, post_type, category, location, contact_info, status, creator_id, creator_name } = req.body;
 
     // --- Strict Field Validation ---
     const errors = [];
@@ -110,6 +110,9 @@ exports.createItem = async (req, res) => {
       });
     }
 
+    const effectiveCreatorId = creator_id || req.headers['x-user-id'] || 'student-guest';
+    const effectiveCreatorName = creator_name || req.headers['x-user-name'] || 'Campus Student';
+
     const newItem = await Item.create({
       title: title.trim(),
       description: description.trim(),
@@ -117,7 +120,9 @@ exports.createItem = async (req, res) => {
       category,
       location: location.trim(),
       contact_info: contact_info.trim(),
-      status: status && ['Open', 'Claimed', 'Returned'].includes(status) ? status : 'Open'
+      status: status && ['Open', 'Claimed', 'Returned'].includes(status) ? status : 'Open',
+      creator_id: effectiveCreatorId,
+      creator_name: effectiveCreatorName
     });
 
     res.status(201).json({
@@ -149,6 +154,16 @@ exports.updateItem = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: `Item not found with id: ${id}`
+      });
+    }
+
+    // Authorization Check: Only creator or admin can update
+    const userId = req.body?.user_id || req.headers['x-user-id'];
+    const userRole = req.body?.user_role || req.headers['x-user-role'];
+    if (existing.creator_id && userId && existing.creator_id !== userId && userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Permission denied: Only the student who created this post or a campus administrator can edit it.'
       });
     }
 
@@ -236,6 +251,16 @@ exports.deleteItem = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: `Item not found with id: ${id}`
+      });
+    }
+
+    // Authorization Check: Only creator or admin can delete
+    const userId = req.body?.user_id || req.headers['x-user-id'];
+    const userRole = req.body?.user_role || req.headers['x-user-role'];
+    if (existing.creator_id && userId && existing.creator_id !== userId && userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Permission denied: Only the student who created this post or a campus administrator can delete it.'
       });
     }
 

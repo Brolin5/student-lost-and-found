@@ -54,6 +54,14 @@ const itemSchema = new mongoose.Schema({
     },
     default: 'Open'
   },
+  creator_id: {
+    type: String,
+    default: 'guest-user'
+  },
+  creator_name: {
+    type: String,
+    default: 'Anonymous Student'
+  },
   created_at: {
     type: Date,
     default: Date.now
@@ -82,6 +90,8 @@ const ensureDataFile = () => {
         location: 'Lecture Theatre B',
         contact_info: 'tunde.sample@campus.edu',
         status: 'Open',
+        creator_id: 'student-tunde',
+        creator_name: 'Tunde Adebayo',
         created_at: new Date(Date.now() - 3600000 * 24).toISOString()
       },
       {
@@ -93,6 +103,8 @@ const ensureDataFile = () => {
         location: 'Science Library, 1st Floor',
         contact_info: 'library-desk.sample@campus.edu',
         status: 'Open',
+        creator_id: 'staff-library',
+        creator_name: 'Library Front Desk',
         created_at: new Date(Date.now() - 3600000 * 12).toISOString()
       },
       {
@@ -104,6 +116,8 @@ const ensureDataFile = () => {
         location: 'Campus Cafeteria walkway',
         contact_info: 'affairs.sample@campus.edu',
         status: 'Returned',
+        creator_id: 'student-chioma',
+        creator_name: 'Chioma Okeke',
         created_at: new Date(Date.now() - 3600000 * 48).toISOString()
       }
     ];
@@ -193,6 +207,8 @@ const ItemRepository = {
       location: data.location.trim(),
       contact_info: data.contact_info.trim(),
       status: data.status || 'Open',
+      creator_id: data.creator_id || 'guest-student',
+      creator_name: data.creator_name || 'Campus Student',
       created_at: new Date().toISOString()
     };
     items.unshift(newItem);

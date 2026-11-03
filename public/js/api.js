@@ -7,6 +7,26 @@ const API_BASE = '/api/items';
 
 const API = {
   /**
+   * Helper to retrieve active user identity from localStorage
+   */
+  getAuthHeaders() {
+    try {
+      const user = JSON.parse(localStorage.getItem('campus_active_user') || '{}');
+      return {
+        'x-user-id': user.id || 'student-tunde',
+        'x-user-name': user.name || 'Tunde Adebayo',
+        'x-user-role': user.role || 'student'
+      };
+    } catch {
+      return {
+        'x-user-id': 'student-tunde',
+        'x-user-name': 'Tunde Adebayo',
+        'x-user-role': 'student'
+      };
+    }
+  },
+
+  /**
    * Fetch list of items with optional filters
    * @param {Object} params - { type, category, status, q }
    */
@@ -44,12 +64,20 @@ const API = {
    * @param {Object} itemData
    */
   async createItem(itemData) {
+    const authHeaders = this.getAuthHeaders();
+    const payload = {
+      ...itemData,
+      creator_id: authHeaders['x-user-id'],
+      creator_name: authHeaders['x-user-name']
+    };
+
     const response = await fetch(API_BASE, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...authHeaders
       },
-      body: JSON.stringify(itemData)
+      body: JSON.stringify(payload)
     });
     const data = await response.json();
     if (!response.ok) {
@@ -65,10 +93,12 @@ const API = {
    * @param {Object} updateData
    */
   async updateItem(id, updateData) {
+    const authHeaders = this.getAuthHeaders();
     const response = await fetch(`${API_BASE}/${id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...authHeaders
       },
       body: JSON.stringify(updateData)
     });
@@ -84,8 +114,13 @@ const API = {
    * @param {string} id
    */
   async deleteItem(id) {
+    const authHeaders = this.getAuthHeaders();
     const response = await fetch(`${API_BASE}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders
+      }
     });
     const data = await response.json();
     if (!response.ok) {

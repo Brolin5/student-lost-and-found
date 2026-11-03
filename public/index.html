@@ -39,6 +39,43 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <!-- Active Student Account / Role Switcher -->
+        <div class="relative">
+          <button 
+            id="user-profile-btn" 
+            class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 transition-all focus:outline-none"
+            title="Switch student profile"
+          >
+            <i class="fa-solid fa-circle-user text-blue-600 text-sm"></i>
+            <span id="active-user-name">Tunde Adebayo</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div id="user-profile-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 text-xs">
+            <div class="px-3 py-1.5 text-slate-400 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-100">
+              Active Student Account
+            </div>
+            <button onclick="switchUser('student-tunde', 'Tunde Adebayo', 'student')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-700">
+              <span>👤 Tunde Adebayo</span>
+              <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-medium">Student</span>
+            </button>
+            <button onclick="switchUser('student-chioma', 'Chioma Okeke', 'student')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-700">
+              <span>👤 Chioma Okeke</span>
+              <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-medium">Student</span>
+            </button>
+            <button onclick="switchUser('staff-admin', 'Campus Admin', 'admin')" class="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center justify-between text-amber-800 font-semibold border-t border-slate-100">
+              <span>🛡️ Campus Admin</span>
+              <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">All Access</span>
+            </button>
+            <div class="border-t border-slate-100 mt-1 pt-1 px-3 py-1">
+              <button onclick="promptCustomUser()" class="w-full text-left py-1 text-blue-600 hover:text-blue-700 font-medium">
+                + Switch to My Own Name...
+              </button>
+            </div>
+          </div>
+        </div>
+
         <button 
           id="open-create-modal-btn" 
           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-blue-500/40 focus:outline-none active:scale-95"
@@ -508,7 +545,10 @@
   <!-- MODAL: Delete Confirmation (DELETE)       -->
   <!-- ========================================== -->
   <div id="delete-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200 p-6 text-center">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200 p-6 text-center relative">
+      <button id="close-delete-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
       <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
