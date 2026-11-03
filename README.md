@@ -101,7 +101,7 @@ Follow these steps to run the application locally:
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/student-lost-and-found.git
+git clone https://github.com/Brolin5/student-lost-and-found.git
 cd student-lost-and-found
 ```
 
@@ -172,7 +172,7 @@ npm test
 
 ### Live Application Link
 * **Production URL:** `[INSERT LIVE DEPLOYMENT URL HERE]`
-* **GitHub Repository:** `[INSERT GITHUB REPOSITORY URL HERE]`
+* **GitHub Repository:** https://github.com/Brolin5/student-lost-and-found
 
 ---
 
