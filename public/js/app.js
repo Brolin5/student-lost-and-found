@@ -1,34 +1,12 @@
 /**
  * Student Lost & Found Platform - Frontend Application Logic
+ * Full CRUD with JWT Authentication & Ownership Controls
  */
-
-// User Management & Current Session
-const defaultUser = {
-  id: 'student-tunde',
-  name: 'Tunde Adebayo',
-  role: 'student'
-};
-
-function getCurrentUser() {
-  try {
-    const stored = localStorage.getItem('campus_active_user');
-    return stored ? JSON.parse(stored) : defaultUser;
-  } catch {
-    return defaultUser;
-  }
-}
-
-function setCurrentUser(user) {
-  localStorage.setItem('campus_active_user', JSON.stringify(user));
-  state.currentUser = user;
-  updateUserUI();
-  renderItemsList();
-}
 
 // Application State
 const state = {
   items: [],
-  currentUser: getCurrentUser(),
+  currentUser: API.getStoredUser(),
   filters: {
     type: 'All',
     category: 'All',
@@ -52,10 +30,19 @@ const elements = {
   statFound: document.getElementById('stat-found'),
   statReturned: document.getElementById('stat-returned'),
 
-  // User Profile elements
-  userProfileBtn: document.getElementById('user-profile-btn'),
-  userProfileMenu: document.getElementById('user-profile-menu'),
+  // Auth elements
+  authUnauthenticated: document.getElementById('auth-unauthenticated'),
+  authAuthenticated: document.getElementById('auth-authenticated'),
+  openAuthBtn: document.getElementById('open-auth-btn'),
+  closeAuthModalBtn: document.getElementById('close-auth-modal-btn'),
+  authModal: document.getElementById('auth-modal'),
+  authModalTitle: document.getElementById('auth-modal-title'),
+  authTabLogin: document.getElementById('auth-tab-login'),
+  authTabRegister: document.getElementById('auth-tab-register'),
+  loginForm: document.getElementById('login-form'),
+  registerForm: document.getElementById('register-form'),
   activeUserName: document.getElementById('active-user-name'),
+  activeUserRoleBadge: document.getElementById('active-user-role-badge'),
 
   // Filter elements
   typeTabs: document.querySelectorAll('.type-tab'),
@@ -138,48 +125,166 @@ function escapeHtml(str) {
 }
 
 // ----------------------------------------------------
-// User Profile / Authentication Management
+// Authentication Handlers
 // ----------------------------------------------------
 
-function updateUserUI() {
-  if (!elements.activeUserName) return;
+function updateAuthUI() {
   const user = state.currentUser;
-  if (user.role === 'admin') {
-    elements.activeUserName.innerHTML = `<span class="text-amber-700 font-bold">🛡️ ${escapeHtml(user.name)}</span>`;
+
+  if (user) {
+    if (elements.authUnauthenticated) elements.authUnauthenticated.classList.add('hidden');
+    if (elements.authAuthenticated) {
+      elements.authAuthenticated.classList.remove('hidden');
+      elements.authAuthenticated.classList.add('flex');
+    }
+    if (elements.activeUserName) elements.activeUserName.textContent = user.name;
+    if (elements.activeUserRoleBadge) {
+      if (user.role === 'admin') {
+        elements.activeUserRoleBadge.classList.remove('hidden');
+      } else {
+        elements.activeUserRoleBadge.classList.add('hidden');
+      }
+    }
   } else {
-    elements.activeUserName.textContent = user.name;
+    if (elements.authAuthenticated) {
+      elements.authAuthenticated.classList.add('hidden');
+      elements.authAuthenticated.classList.remove('flex');
+    }
+    if (elements.authUnauthenticated) elements.authUnauthenticated.classList.remove('hidden');
   }
 }
 
-window.switchUser = (id, name, role) => {
-  setCurrentUser({ id, name, role });
-  if (elements.userProfileMenu) {
-    elements.userProfileMenu.classList.add('hidden');
+function openAuthModal(tab = 'login') {
+  if (!elements.authModal) return;
+  switchAuthTab(tab);
+  elements.authModal.classList.remove('modal-hidden');
+  elements.authModal.classList.add('modal-visible');
+}
+
+function closeAuthModal() {
+  if (!elements.authModal) return;
+  elements.authModal.classList.remove('modal-visible');
+  elements.authModal.classList.add('modal-hidden');
+}
+
+function switchAuthTab(tab) {
+  if (tab === 'login') {
+    if (elements.authModalTitle) elements.authModalTitle.textContent = 'Student Sign In';
+    if (elements.authTabLogin) {
+      elements.authTabLogin.className = 'pb-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600';
+    }
+    if (elements.authTabRegister) {
+      elements.authTabRegister.className = 'pb-2 text-xs font-semibold text-slate-500 hover:text-slate-700';
+    }
+    if (elements.loginForm) elements.loginForm.classList.remove('hidden');
+    if (elements.registerForm) elements.registerForm.classList.add('hidden');
+  } else {
+    if (elements.authModalTitle) elements.authModalTitle.textContent = 'Create Student Account';
+    if (elements.authTabRegister) {
+      elements.authTabRegister.className = 'pb-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600';
+    }
+    if (elements.authTabLogin) {
+      elements.authTabLogin.className = 'pb-2 text-xs font-semibold text-slate-500 hover:text-slate-700';
+    }
+    if (elements.registerForm) elements.registerForm.classList.remove('hidden');
+    if (elements.loginForm) elements.loginForm.classList.add('hidden');
   }
-  showToast(`Switched active profile to: ${name}`, 'info');
-};
+}
 
-window.promptCustomUser = () => {
-  const name = prompt('Enter your full name or student username:');
-  if (name && name.trim()) {
-    const cleanName = name.trim();
-    const id = 'student-' + cleanName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    switchUser(id, cleanName, 'student');
-  }
-};
+if (elements.openAuthBtn) {
+  elements.openAuthBtn.addEventListener('click', () => openAuthModal('login'));
+}
 
-if (elements.userProfileBtn && elements.userProfileMenu) {
-  elements.userProfileBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    elements.userProfileMenu.classList.toggle('hidden');
-  });
+if (elements.closeAuthModalBtn) {
+  elements.closeAuthModalBtn.addEventListener('click', closeAuthModal);
+}
 
-  document.addEventListener('click', (e) => {
-    if (!elements.userProfileBtn.contains(e.target) && !elements.userProfileMenu.contains(e.target)) {
-      elements.userProfileMenu.classList.add('hidden');
+if (elements.authTabLogin) {
+  elements.authTabLogin.addEventListener('click', () => switchAuthTab('login'));
+}
+
+if (elements.authTabRegister) {
+  elements.authTabRegister.addEventListener('click', () => switchAuthTab('register'));
+}
+
+// Handle Login Form Submit
+if (elements.loginForm) {
+  elements.loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    const btn = elements.loginForm.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Signing In...';
+
+    try {
+      const data = await API.login(username, password);
+      state.currentUser = data.user;
+      closeAuthModal();
+      updateAuthUI();
+      renderItemsList();
+      showToast(data.message || `Welcome, ${data.user.name}!`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
     }
   });
 }
+
+// Handle Register Form Submit
+if (elements.registerForm) {
+  elements.registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value.trim();
+    const username = document.getElementById('register-username').value.trim();
+    const password = document.getElementById('register-password').value;
+
+    const btn = elements.registerForm.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Creating Account...';
+
+    try {
+      const data = await API.register(name, username, password);
+      state.currentUser = data.user;
+      closeAuthModal();
+      updateAuthUI();
+      renderItemsList();
+      showToast(`Account created! Welcome, ${data.user.name}.`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  });
+}
+
+// Quick 1-Click Demo Login
+window.demoLogin = async (username, password) => {
+  try {
+    const data = await API.login(username, password);
+    state.currentUser = data.user;
+    closeAuthModal();
+    updateAuthUI();
+    renderItemsList();
+    showToast(`Signed in as ${data.user.name}`, 'success');
+  } catch (err) {
+    showToast(`Demo login failed: ${err.message}`, 'error');
+  }
+};
+
+window.handleLogout = () => {
+  API.logout();
+  state.currentUser = null;
+  updateAuthUI();
+  renderItemsList();
+  showToast('You have been logged out.', 'info');
+};
 
 // ----------------------------------------------------
 // Data Loading & Statistics
@@ -215,7 +320,7 @@ async function loadItems() {
 }
 
 // ----------------------------------------------------
-// Rendering Items with Post Ownership Controls
+// Rendering Items with Authenticated Ownership
 // ----------------------------------------------------
 
 function renderItemsList() {
@@ -241,9 +346,13 @@ function renderItemsList() {
       if (item.status === 'Claimed') statusBadgeClass = 'status-claimed';
       if (item.status === 'Returned') statusBadgeClass = 'status-returned';
 
-      // Ownership Check: Current user owns this post OR is an admin
-      const isOwner = (state.currentUser.role === 'admin') || 
-                      (item.creator_id && item.creator_id === state.currentUser.id);
+      // Strict Ownership Check against authenticated session
+      const user = state.currentUser;
+      const isOwner = user && (
+        user.role === 'admin' ||
+        (item.creator_id && item.creator_id === user.id) ||
+        (item.creator_username && item.creator_username.toLowerCase() === user.username.toLowerCase())
+      );
 
       return `
         <div class="item-card bg-white rounded-xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between" data-id="${id}">
@@ -263,14 +372,14 @@ function renderItemsList() {
               </div>
             </div>
 
-            <!-- Ownership Pill -->
+            <!-- Ownership Indicator -->
             <div class="mb-2">
               ${isOwner 
                 ? `<span class="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-semibold border border-blue-200/60">
                      <i class="fa-solid fa-user-check text-[10px]"></i> Your Post
                    </span>` 
                 : `<span class="inline-flex items-center gap-1 text-[11px] text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/50">
-                     <i class="fa-solid fa-user text-[10px] text-slate-400"></i> ${escapeHtml(item.creator_name || 'Student')}
+                     <i class="fa-solid fa-user text-[10px] text-slate-400"></i> Posted by ${escapeHtml(item.creator_name || 'Student')}
                    </span>`
               }
             </div>
@@ -306,7 +415,7 @@ function renderItemsList() {
           <!-- Bottom Action Area -->
           <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
             ${isOwner ? `
-              <!-- Quick Status Changer (Only for Owner or Admin) -->
+              <!-- Status Changer (Only for Owner or Admin) -->
               <select 
                 onchange="handleQuickStatusChange('${id}', this.value)" 
                 class="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer"
@@ -334,13 +443,13 @@ function renderItemsList() {
                 </button>
               </div>
             ` : `
-              <!-- Protected Post (Belongs to someone else) -->
+              <!-- Protected View for Other Users -->
               <div class="w-full flex items-center justify-between text-xs text-slate-400 py-1">
                 <span class="flex items-center gap-1.5">
                   <i class="fa-solid fa-lock text-slate-300"></i>
-                  <span>Protected (Created by ${escapeHtml(item.creator_name || 'student')})</span>
+                  <span>Protected</span>
                 </span>
-                <span class="text-slate-400 font-medium">Contact to claim</span>
+                <span class="text-slate-500 font-medium">Contact to claim item</span>
               </div>
             `}
           </div>
@@ -351,12 +460,26 @@ function renderItemsList() {
 }
 
 // ----------------------------------------------------
-// CRUD: CREATE Item
+// CRUD: CREATE Item (Protected)
 // ----------------------------------------------------
 
 if (elements.openCreateModalBtn && elements.createModal) {
   elements.openCreateModalBtn.addEventListener('click', () => {
-    if (elements.createForm) elements.createForm.reset();
+    // Require authentication before reporting
+    if (!state.currentUser) {
+      showToast('Please sign in or create an account to report an item', 'info');
+      openAuthModal('login');
+      return;
+    }
+
+    if (elements.createForm) {
+      elements.createForm.reset();
+      // Pre-fill contact with student name if available
+      const contactInput = document.getElementById('create-contact');
+      if (contactInput && state.currentUser) {
+        contactInput.value = `${state.currentUser.name} (${state.currentUser.username}@campus.edu)`;
+      }
+    }
     elements.createModal.classList.remove('modal-hidden');
     elements.createModal.classList.add('modal-visible');
   });
@@ -375,8 +498,13 @@ if (elements.cancelCreateBtn) elements.cancelCreateBtn.addEventListener('click',
 if (elements.createForm) {
   elements.createForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const formData = new FormData(elements.createForm);
+    if (!state.currentUser) {
+      showToast('Please sign in first', 'error');
+      openAuthModal('login');
+      return;
+    }
 
+    const formData = new FormData(elements.createForm);
     const payload = {
       title: formData.get('title'),
       description: formData.get('description'),
@@ -417,10 +545,16 @@ if (elements.createForm) {
 }
 
 // ----------------------------------------------------
-// CRUD: UPDATE Item
+// CRUD: UPDATE Item (Protected)
 // ----------------------------------------------------
 
 window.openEditModal = async (id) => {
+  if (!state.currentUser) {
+    showToast('Please sign in to edit posts', 'error');
+    openAuthModal('login');
+    return;
+  }
+
   try {
     const res = await API.getItemById(id);
     const item = res.data;
@@ -512,10 +646,15 @@ window.handleQuickStatusChange = async (id, newStatus) => {
 };
 
 // ----------------------------------------------------
-// CRUD: DELETE Item
+// CRUD: DELETE Item (Protected)
 // ----------------------------------------------------
 
 window.openDeleteModal = (id, title) => {
+  if (!state.currentUser) {
+    showToast('Please sign in to manage posts', 'error');
+    openAuthModal('login');
+    return;
+  }
   state.activeDeleteId = id;
   const titleEl = document.getElementById('delete-item-title');
   if (titleEl) titleEl.textContent = title;
@@ -622,7 +761,7 @@ if (elements.clearSearchBtn && elements.searchInput) {
 }
 
 // Backdrop modal click listener
-[elements.createModal, elements.editModal, elements.deleteModal].forEach(modal => {
+[elements.createModal, elements.editModal, elements.deleteModal, elements.authModal].forEach(modal => {
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
@@ -636,8 +775,18 @@ if (elements.clearSearchBtn && elements.searchInput) {
 // ----------------------------------------------------
 // Safe App Initialization
 // ----------------------------------------------------
-function initApp() {
-  updateUserUI();
+async function initApp() {
+  updateAuthUI();
+  // Verify token in background
+  try {
+    const verifiedUser = await API.getMe();
+    if (verifiedUser) {
+      state.currentUser = verifiedUser;
+      updateAuthUI();
+    }
+  } catch {
+    // If invalid token, clear
+  }
   loadDashboardStats();
   loadItems();
 }

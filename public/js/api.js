@@ -4,31 +4,121 @@
  */
 
 const API_BASE = '/api/items';
+const AUTH_BASE = '/api/auth';
 
 const API = {
   /**
-   * Helper to retrieve active user identity from localStorage
+   * Helper to retrieve JWT token
    */
-  getAuthHeaders() {
+  getToken() {
+    return localStorage.getItem('campus_auth_token') || null;
+  },
+
+  /**
+   * Helper to retrieve currently stored user
+   */
+  getStoredUser() {
     try {
-      const user = JSON.parse(localStorage.getItem('campus_active_user') || '{}');
-      return {
-        'x-user-id': user.id || 'student-tunde',
-        'x-user-name': user.name || 'Tunde Adebayo',
-        'x-user-role': user.role || 'student'
-      };
+      const user = localStorage.getItem('campus_auth_user');
+      return user ? JSON.parse(user) : null;
     } catch {
-      return {
-        'x-user-id': 'student-tunde',
-        'x-user-name': 'Tunde Adebayo',
-        'x-user-role': 'student'
-      };
+      return null;
     }
   },
 
   /**
+   * Helper to construct auth headers
+   */
+  getHeaders() {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    const token = this.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  },
+
+  // ----------------------------------------------------
+  // Authentication Endpoints
+  // ----------------------------------------------------
+
+  /**
+   * Sign In user
+   */
+  async login(username, password) {
+    const response = await fetch(`${AUTH_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Login failed');
+    }
+    // Save session
+    localStorage.setItem('campus_auth_token', data.token);
+    localStorage.setItem('campus_auth_user', JSON.stringify(data.user));
+    return data;
+  },
+
+  /**
+   * Register new user
+   */
+  async register(name, username, password) {
+    const response = await fetch(`${AUTH_BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, username, password })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const errorMsg = data.errors ? data.errors.join(', ') : (data.message || 'Registration failed');
+      throw new Error(errorMsg);
+    }
+    // Save session
+    localStorage.setItem('campus_auth_token', data.token);
+    localStorage.setItem('campus_auth_user', JSON.stringify(data.user));
+    return data;
+  },
+
+  /**
+   * Logout user
+   */
+  logout() {
+    localStorage.removeItem('campus_auth_token');
+    localStorage.removeItem('campus_auth_user');
+  },
+
+  /**
+   * Verify current session
+   */
+  async getMe() {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const response = await fetch(`${AUTH_BASE}/me`, {
+        headers: this.getHeaders()
+      });
+      if (!response.ok) {
+        this.logout();
+        return null;
+      }
+      const data = await response.json();
+      return data.user;
+    } catch {
+      return null;
+    }
+  },
+
+  // ----------------------------------------------------
+  // Items CRUD Endpoints
+  // ----------------------------------------------------
+
+  /**
    * Fetch list of items with optional filters
-   * @param {Object} params - { type, category, status, q }
    */
   async getItems(params = {}) {
     const query = new URLSearchParams();
@@ -38,7 +128,9 @@ const API = {
     if (params.q && params.q.trim()) query.append('q', params.q.trim());
 
     const url = `${API_BASE}?${query.toString()}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: this.getHeaders()
+    });
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Failed to fetch items');
@@ -48,10 +140,11 @@ const API = {
 
   /**
    * Fetch single item by ID
-   * @param {string} id
    */
   async getItemById(id) {
-    const response = await fetch(`${API_BASE}/${id}`);
+    const response = await fetch(`${API_BASE}/${id}`, {
+      headers: this.getHeaders()
+    });
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Failed to fetch item details');
@@ -60,24 +153,13 @@ const API = {
   },
 
   /**
-   * Create a new item (Lost or Found)
-   * @param {Object} itemData
+   * Create a new item (Lost or Found) - Protected
    */
   async createItem(itemData) {
-    const authHeaders = this.getAuthHeaders();
-    const payload = {
-      ...itemData,
-      creator_id: authHeaders['x-user-id'],
-      creator_name: authHeaders['x-user-name']
-    };
-
     const response = await fetch(API_BASE, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders
-      },
-      body: JSON.stringify(payload)
+      headers: this.getHeaders(),
+      body: JSON.stringify(itemData)
     });
     const data = await response.json();
     if (!response.ok) {
@@ -88,18 +170,12 @@ const API = {
   },
 
   /**
-   * Update an existing item by ID
-   * @param {string} id
-   * @param {Object} updateData
+   * Update an existing item by ID - Protected
    */
   async updateItem(id, updateData) {
-    const authHeaders = this.getAuthHeaders();
     const response = await fetch(`${API_BASE}/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders
-      },
+      headers: this.getHeaders(),
       body: JSON.stringify(updateData)
     });
     const data = await response.json();
@@ -110,17 +186,12 @@ const API = {
   },
 
   /**
-   * Delete an item by ID
-   * @param {string} id
+   * Delete an item by ID - Protected
    */
   async deleteItem(id) {
-    const authHeaders = this.getAuthHeaders();
     const response = await fetch(`${API_BASE}/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders
-      }
+      headers: this.getHeaders()
     });
     const data = await response.json();
     if (!response.ok) {

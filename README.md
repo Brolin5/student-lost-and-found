@@ -4,7 +4,7 @@
 > Built for the **Collective Labs | Builders Group (CLBG) Software Development Track End-of-Bootcamp Assessment**.
 
 ![Project Status](https://img.shields.io/badge/Status-Completed-success?style=flat-square)
-![Tests](https://img.shields.io/badge/Tests-29%20Passing-brightgreen?style=flat-square)
+![Tests](https://img.shields.io/badge/Tests-41%20Passing-brightgreen?style=flat-square)
 ![Architecture](https://img.shields.io/badge/Architecture-Full--Stack%20MVC-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-ISC-lightgrey?style=flat-square)
 
@@ -30,14 +30,15 @@ This platform bridges that gap by allowing students to:
 
 ---
 
-## ⚡ 3. Key Features (Full CRUD Implementation)
+## ⚡ 3. Key Features (Full CRUD + Authentication)
 
 | Operation | Action | Feature Description |
 |---|---|---|
-| **Create** | Report Item | Interactive modal to report Lost or Found items with title, category, campus location, description, and contact info. |
+| **Auth** | Sign Up & Sign In | Secure JWT authentication with hashed passwords (`bcryptjs`). Pre-seeded with student accounts (`tunde`, `chioma`) and campus admin (`admin`). |
+| **Create** | Report Item | Interactive modal to report Lost or Found items. Automatically bound to the authenticated student account. |
 | **Read** | Browse & Search | Responsive grid displaying active cards, real-time analytics counter, and multi-field keyword search. |
-| **Update** | Edit & Status Change | Edit existing item details or quickly transition item status between `Open`, `Claimed`, and `Returned`. |
-| **Delete** | Remove Item | Remove duplicates or permanently clear resolved records with user confirmation modal protection. |
+| **Update** | Edit & Status Change | Edit existing item details or quickly transition item status between `Open`, `Claimed`, and `Returned`. Protected by post ownership (only creator or admin). |
+| **Delete** | Remove Item | Safe deletion flow with confirmation modal. Protected by post ownership (only creator or admin). |
 
 ### Additional Highlights
 * **Resilient Database Layer**: Seamlessly connects to **MongoDB Atlas** in production and falls back to a persistent JSON store for local offline testing.

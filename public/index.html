@@ -39,40 +39,29 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Active Student Account / Role Switcher -->
-        <div class="relative">
+        <!-- Auth User State Area -->
+        <div id="auth-unauthenticated" class="flex items-center gap-2">
           <button 
-            id="user-profile-btn" 
-            class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 transition-all focus:outline-none"
-            title="Switch student profile"
+            id="open-auth-btn" 
+            class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 transition-all"
           >
-            <i class="fa-solid fa-circle-user text-blue-600 text-sm"></i>
-            <span id="active-user-name">Tunde Adebayo</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            <i class="fa-solid fa-right-to-bracket text-blue-600"></i>
+            <span>Sign In</span>
           </button>
+        </div>
 
-          <!-- Dropdown Menu -->
-          <div id="user-profile-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 text-xs">
-            <div class="px-3 py-1.5 text-slate-400 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-100">
-              Active Student Account
-            </div>
-            <button onclick="switchUser('student-tunde', 'Tunde Adebayo', 'student')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-700">
-              <span>👤 Tunde Adebayo</span>
-              <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-medium">Student</span>
+        <div id="auth-authenticated" class="hidden items-center gap-2">
+          <div class="inline-flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
+            <i class="fa-solid fa-circle-user text-blue-600 text-sm"></i>
+            <span id="active-user-name" class="font-semibold text-slate-800">Student</span>
+            <span id="active-user-role-badge" class="hidden text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">Admin</span>
+            <button 
+              onclick="handleLogout()" 
+              class="ml-2 text-rose-600 hover:text-rose-700 font-semibold hover:underline border-l border-slate-200 pl-2"
+              title="Sign out of student account"
+            >
+              Logout
             </button>
-            <button onclick="switchUser('student-chioma', 'Chioma Okeke', 'student')" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-700">
-              <span>👤 Chioma Okeke</span>
-              <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-medium">Student</span>
-            </button>
-            <button onclick="switchUser('staff-admin', 'Campus Admin', 'admin')" class="w-full text-left px-3 py-2 hover:bg-amber-50 flex items-center justify-between text-amber-800 font-semibold border-t border-slate-100">
-              <span>🛡️ Campus Admin</span>
-              <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">All Access</span>
-            </button>
-            <div class="border-t border-slate-100 mt-1 pt-1 px-3 py-1">
-              <button onclick="promptCustomUser()" class="w-full text-left py-1 text-blue-600 hover:text-blue-700 font-medium">
-                + Switch to My Own Name...
-              </button>
-            </div>
           </div>
         </div>
 
@@ -537,6 +526,139 @@
             <i class="fa-solid fa-check text-xs"></i>
           </button>
         </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: Authentication (Login / Register)   -->
+  <!-- ========================================== -->
+  <div id="auth-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <i class="fa-solid fa-user-lock"></i>
+          </div>
+          <h3 id="auth-modal-title" class="text-base font-bold text-slate-900">Student Sign In</h3>
+        </div>
+        <button id="close-auth-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="px-6 pt-4 flex border-b border-slate-100 gap-4">
+        <button id="auth-tab-login" type="button" class="pb-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600">
+          Sign In
+        </button>
+        <button id="auth-tab-register" type="button" class="pb-2 text-xs font-semibold text-slate-500 hover:text-slate-700">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="p-6 space-y-4">
+        <div>
+          <label for="login-username" class="block text-xs font-semibold text-slate-700 mb-1">Username *</label>
+          <input 
+            type="text" 
+            id="login-username" 
+            required 
+            placeholder="e.g. tunde" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <div>
+          <label for="login-password" class="block text-xs font-semibold text-slate-700 mb-1">Password *</label>
+          <input 
+            type="password" 
+            id="login-password" 
+            required 
+            placeholder="••••••••" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all"
+        >
+          Sign In
+        </button>
+
+        <!-- Quick 1-Click Demo Logins for Assessors -->
+        <div class="pt-3 border-t border-slate-100 text-center">
+          <span class="text-[11px] text-slate-400 block mb-2 font-medium">Quick 1-Click Demo Accounts:</span>
+          <div class="flex items-center justify-center gap-2 flex-wrap">
+            <button 
+              type="button" 
+              onclick="demoLogin('tunde', 'password123')"
+              class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium"
+            >
+              👤 Tunde
+            </button>
+            <button 
+              type="button" 
+              onclick="demoLogin('chioma', 'password123')"
+              class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium"
+            >
+              👤 Chioma
+            </button>
+            <button 
+              type="button" 
+              onclick="demoLogin('admin', 'admin123')"
+              class="px-2.5 py-1 text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-md font-medium border border-amber-200"
+            >
+              🛡️ Admin
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="hidden p-6 space-y-4">
+        <div>
+          <label for="register-name" class="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
+          <input 
+            type="text" 
+            id="register-name" 
+            required 
+            placeholder="e.g. Samuel Ade" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <div>
+          <label for="register-username" class="block text-xs font-semibold text-slate-700 mb-1">Choose Username *</label>
+          <input 
+            type="text" 
+            id="register-username" 
+            required 
+            placeholder="e.g. samuel99" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <div>
+          <label for="register-password" class="block text-xs font-semibold text-slate-700 mb-1">Password (min 6 characters) *</label>
+          <input 
+            type="password" 
+            id="register-password" 
+            required 
+            placeholder="••••••••" 
+            minlength="6"
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all"
+        >
+          Create Account
+        </button>
       </form>
     </div>
   </div>

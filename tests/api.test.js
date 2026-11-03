@@ -1,6 +1,6 @@
 /**
  * Automated API Test Suite
- * Tests all 4 CRUD operations, validation rules, and error handling.
+ * Tests Authentication (JWT Register/Login), CRUD operations, Validation, and Ownership Authorization.
  */
 
 const http = require('http');
@@ -34,6 +34,8 @@ async function runTests() {
   await new Promise(resolve => server.listen(TEST_PORT, resolve));
   baseUrl = `http://localhost:${TEST_PORT}`;
 
+  let authToken = null;
+  let testUser = null;
   let createdItemId = null;
 
   try {
@@ -47,12 +49,96 @@ async function runTests() {
     assert(healthData.status === 'healthy', 'Health check reports "healthy"');
 
     // ----------------------------------------------------
-    // TEST 2: Validation - Reject Invalid / Empty Input
+    // TEST 2: Authentication - Register New Account
     // ----------------------------------------------------
-    console.log('\n--- Suite 2: Input Validation & Edge Cases ---');
-    const invalidRes = await fetch(`${baseUrl}/api/items`, {
+    console.log('\n--- Suite 2: Authentication - Register ---');
+    const testUsername = 'teststudent_' + Date.now().toString(36);
+    const regRes = await fetch(`${baseUrl}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Test Student User',
+        username: testUsername,
+        password: 'password123'
+      })
+    });
+    const regData = await regRes.json();
+    assert(regRes.status === 201, 'Registers new student account with HTTP 201');
+    assert(regData.success === true, 'Returns success: true on register');
+    assert(typeof regData.token === 'string', 'Returns JWT authentication token');
+    assert(regData.user.username === testUsername, 'Returns created username');
+
+    // Reject duplicate username
+    const dupRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Duplicate Test',
+        username: testUsername,
+        password: 'password123'
+      })
+    });
+    assert(dupRes.status === 400, 'Rejects duplicate registration with HTTP 400');
+
+    // ----------------------------------------------------
+    // TEST 3: Authentication - Sign In (Login)
+    // ----------------------------------------------------
+    console.log('\n--- Suite 3: Authentication - Login & Token Verification ---');
+    // Wrong password test
+    const wrongPassRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: testUsername,
+        password: 'wrong_password_xyz'
+      })
+    });
+    assert(wrongPassRes.status === 401, 'Rejects incorrect password with HTTP 401');
+
+    // Valid login
+    const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: testUsername,
+        password: 'password123'
+      })
+    });
+    const loginData = await loginRes.json();
+    assert(loginRes.status === 200, 'Logs in successfully with HTTP 200');
+    assert(typeof loginData.token === 'string', 'Returns valid JWT token');
+    authToken = loginData.token;
+    testUser = loginData.user;
+
+    // Verify /api/auth/me
+    const meRes = await fetch(`${baseUrl}/api/auth/me`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const meData = await meRes.json();
+    assert(meRes.status === 200, 'Verified profile via /api/auth/me');
+    assert(meData.user.username === testUsername, 'Profile matches authenticated user');
+
+    // ----------------------------------------------------
+    // TEST 4: Authorization Protection - Unauthenticated Rejection
+    // ----------------------------------------------------
+    console.log('\n--- Suite 4: Route Protection ---');
+    const unauthRes = await fetch(`${baseUrl}/api/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Unauthorized Post' })
+    });
+    assert(unauthRes.status === 401, 'Rejects unauthenticated POST request with HTTP 401');
+
+    // ----------------------------------------------------
+    // TEST 5: Validation - Reject Invalid / Empty Fields
+    // ----------------------------------------------------
+    console.log('\n--- Suite 5: Input Validation & Edge Cases ---');
+    const invalidRes = await fetch(`${baseUrl}/api/items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
       body: JSON.stringify({
         title: '',
         description: '',
@@ -65,19 +151,22 @@ async function runTests() {
     assert(Array.isArray(invalidData.errors) && invalidData.errors.length > 0, 'Returns specific validation error messages');
 
     // ----------------------------------------------------
-    // TEST 3: CRUD - CREATE (Post New Lost Item)
+    // TEST 6: CRUD - CREATE (Post New Lost Item)
     // ----------------------------------------------------
-    console.log('\n--- Suite 3: CRUD Operation - CREATE ---');
+    console.log('\n--- Suite 6: CRUD Operation - CREATE ---');
     const createRes = await fetch(`${baseUrl}/api/items`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
       body: JSON.stringify({
         title: 'Blue Campus Backpack (Dell)',
         description: 'Navy blue canvas backpack with laptop charger inside',
         post_type: 'Lost',
         category: 'Accessories',
         location: 'Engineering Block 3, Room 302',
-        contact_info: 'emeka.student@campus.edu',
+        contact_info: 'teststudent@campus.edu',
         status: 'Open'
       })
     });
@@ -90,9 +179,9 @@ async function runTests() {
     createdItemId = createData.data._id || createData.data.id;
 
     // ----------------------------------------------------
-    // TEST 4: CRUD - READ (List Items & Get by ID)
+    // TEST 7: CRUD - READ (List Items & Get by ID)
     // ----------------------------------------------------
-    console.log('\n--- Suite 4: CRUD Operation - READ ---');
+    console.log('\n--- Suite 7: CRUD Operation - READ ---');
     const listRes = await fetch(`${baseUrl}/api/items`);
     const listData = await listRes.json();
     assert(listRes.status === 200, 'Fetches all items with HTTP 200');
@@ -113,12 +202,15 @@ async function runTests() {
     assert(singleData.data.title === 'Blue Campus Backpack (Dell)', 'Retrieved single item matches ID');
 
     // ----------------------------------------------------
-    // TEST 5: CRUD - UPDATE (Edit Details & Status)
+    // TEST 8: CRUD - UPDATE (Edit Details & Status)
     // ----------------------------------------------------
-    console.log('\n--- Suite 5: CRUD Operation - UPDATE ---');
+    console.log('\n--- Suite 8: CRUD Operation - UPDATE ---');
     const updateRes = await fetch(`${baseUrl}/api/items/${createdItemId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
       body: JSON.stringify({
         title: 'Blue Campus Backpack (Dell) [CLAIMED]',
         status: 'Claimed',
@@ -132,9 +224,9 @@ async function runTests() {
     assert(updateData.data.location === 'Security Post 1 (Handed in)', 'Location updated properly');
 
     // ----------------------------------------------------
-    // TEST 6: Dashboard Statistics
+    // TEST 9: Dashboard Statistics
     // ----------------------------------------------------
-    console.log('\n--- Suite 6: Analytics & Stats ---');
+    console.log('\n--- Suite 9: Analytics & Stats ---');
     const statsRes = await fetch(`${baseUrl}/api/items/stats`);
     const statsData = await statsRes.json();
     assert(statsRes.status === 200, 'Stats endpoint responds with HTTP 200');
@@ -142,14 +234,40 @@ async function runTests() {
     assert(typeof statsData.data.claimed === 'number', 'Stats includes claimed count');
 
     // ----------------------------------------------------
-    // TEST 7: CRUD - DELETE (Remove Item)
+    // TEST 10: Ownership Protection - Reject Other Users
     // ----------------------------------------------------
-    console.log('\n--- Suite 7: CRUD Operation - DELETE ---');
+    console.log('\n--- Suite 10: Ownership Protection ---');
+    // Register second student
+    const otherUsername = 'otherstudent_' + Date.now().toString(36);
+    const otherRegRes = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Other Student',
+        username: otherUsername,
+        password: 'password123'
+      })
+    });
+    const otherRegData = await otherRegRes.json();
+    const otherToken = otherRegData.token;
+
+    // Other user attempts to delete testUser's item
+    const unauthorizedDelete = await fetch(`${baseUrl}/api/items/${createdItemId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${otherToken}` }
+    });
+    assert(unauthorizedDelete.status === 403, 'Rejects deletion of other user\'s post with HTTP 403 Forbidden');
+
+    // ----------------------------------------------------
+    // TEST 11: CRUD - DELETE by Owner
+    // ----------------------------------------------------
+    console.log('\n--- Suite 11: CRUD Operation - DELETE by Owner ---');
     const deleteRes = await fetch(`${baseUrl}/api/items/${createdItemId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authToken}` }
     });
     const deleteData = await deleteRes.json();
-    assert(deleteRes.status === 200, 'Deletes item with HTTP 200');
+    assert(deleteRes.status === 200, 'Owner deletes item with HTTP 200');
     assert(deleteData.success === true, 'Returns success: true on delete');
 
     // Verify item is actually deleted (404 expected)
@@ -157,9 +275,9 @@ async function runTests() {
     assert(verifyDeleteRes.status === 404, 'Deleted item no longer exists (returns HTTP 404)');
 
     // ----------------------------------------------------
-    // TEST 8: Error Handling - 404 for Non-Existent Resources
+    // TEST 12: Error Handling - 404 for Non-Existent Resources
     // ----------------------------------------------------
-    console.log('\n--- Suite 8: 404 Error Handling ---');
+    console.log('\n--- Suite 12: 404 Error Handling ---');
     const notFoundRes = await fetch(`${baseUrl}/api/items/non-existent-random-id-9999`);
     assert(notFoundRes.status === 404, 'Returns 404 for non-existent item ID');
 

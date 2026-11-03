@@ -110,8 +110,9 @@ exports.createItem = async (req, res) => {
       });
     }
 
-    const effectiveCreatorId = creator_id || req.headers['x-user-id'] || 'student-guest';
-    const effectiveCreatorName = creator_name || req.headers['x-user-name'] || 'Campus Student';
+    const effectiveCreatorId = req.user?.id || creator_id || req.headers['x-user-id'] || 'student-guest';
+    const effectiveCreatorName = req.user?.name || creator_name || req.headers['x-user-name'] || 'Campus Student';
+    const effectiveUsername = req.user?.username || 'student';
 
     const newItem = await Item.create({
       title: title.trim(),
@@ -122,7 +123,8 @@ exports.createItem = async (req, res) => {
       contact_info: contact_info.trim(),
       status: status && ['Open', 'Claimed', 'Returned'].includes(status) ? status : 'Open',
       creator_id: effectiveCreatorId,
-      creator_name: effectiveCreatorName
+      creator_name: effectiveCreatorName,
+      creator_username: effectiveUsername
     });
 
     res.status(201).json({
@@ -158,8 +160,8 @@ exports.updateItem = async (req, res) => {
     }
 
     // Authorization Check: Only creator or admin can update
-    const userId = req.body?.user_id || req.headers['x-user-id'];
-    const userRole = req.body?.user_role || req.headers['x-user-role'];
+    const userId = req.user?.id || req.body?.user_id || req.headers['x-user-id'];
+    const userRole = req.user?.role || req.body?.user_role || req.headers['x-user-role'];
     if (existing.creator_id && userId && existing.creator_id !== userId && userRole !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -255,8 +257,8 @@ exports.deleteItem = async (req, res) => {
     }
 
     // Authorization Check: Only creator or admin can delete
-    const userId = req.body?.user_id || req.headers['x-user-id'];
-    const userRole = req.body?.user_role || req.headers['x-user-role'];
+    const userId = req.user?.id || req.body?.user_id || req.headers['x-user-id'];
+    const userRole = req.user?.role || req.body?.user_role || req.headers['x-user-role'];
     if (existing.creator_id && userId && existing.creator_id !== userId && userRole !== 'admin') {
       return res.status(403).json({
         success: false,
