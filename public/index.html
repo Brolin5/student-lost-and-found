@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Lost &amp; Found Platform | CLBG Software Development</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+
+  <!-- ========================================== -->
+  <!-- Top Navigation Bar                         -->
+  <!-- ========================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <i class="fa-solid fa-compass-drafting text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-none">
+            Campus Lost &amp; Found
+          </h1>
+          <span class="text-xs text-slate-500 font-medium">CLBG Software Development Bootcamp</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button 
+          id="open-create-modal-btn" 
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-blue-500/40 focus:outline-none active:scale-95"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Report Item</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- Main Application Body                      -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Hero / Headline Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-6">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Lost something? Found something?
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 mt-1 max-w-2xl">
+          A centralized campus board connecting students with their misplaced belongings. Filter, search, and update item status in real time.
+        </p>
+      </div>
+
+      <!-- Live Database Status Indicator -->
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-medium self-start md:self-auto">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Connected to Live Database</span>
+      </div>
+    </div>
+
+    <!-- Quick Analytics Stats Row -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Reports</span>
+          <div id="stat-total" class="text-2xl font-bold text-slate-900">0</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lost Items</span>
+          <div id="stat-lost" class="text-2xl font-bold text-rose-600">0</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-hand-holding-heart"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Found Items</span>
+          <div id="stat-found" class="text-2xl font-bold text-emerald-600">0</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resolved / Reunited</span>
+          <div id="stat-returned" class="text-2xl font-bold text-indigo-600">0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Toolbar -->
+    <section class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <!-- Post Type Tabs -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-lg shrink-0">
+          <button data-type="All" class="type-tab px-4 py-1.5 rounded-md text-xs font-semibold bg-blue-600 text-white shadow-xs transition-all">
+            All Items
+          </button>
+          <button data-type="Lost" class="type-tab px-4 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-all">
+            <i class="fa-solid fa-magnifying-glass mr-1 text-rose-500"></i> Lost
+          </button>
+          <button data-type="Found" class="type-tab px-4 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-all">
+            <i class="fa-solid fa-hand-holding-heart mr-1 text-emerald-500"></i> Found
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative flex-1 max-w-md">
+          <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search items by title, location, or keyword..."
+            class="w-full pl-10 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          >
+          <button id="clear-search-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Dropdown Filters (Category & Status) -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="flex items-center gap-1.5">
+            <label for="category-filter" class="text-xs font-semibold text-slate-500">Category:</label>
+            <select id="category-filter" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+              <option value="All">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Books">Books</option>
+              <option value="Documents">Documents</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label for="status-filter" class="text-xs font-semibold text-slate-500">Status:</label>
+            <select id="status-filter" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+              <option value="All">All Statuses</option>
+              <option value="Open">Open</option>
+              <option value="Claimed">Claimed</option>
+              <option value="Returned">Returned</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Items Listing Section                      -->
+    <!-- ========================================== -->
+    <section>
+      <!-- Loading Skeleton State -->
+      <div id="loading-state" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+          <div class="flex justify-between"><div class="h-6 w-20 skeleton rounded-full"></div><div class="h-6 w-16 skeleton rounded-full"></div></div>
+          <div class="h-6 w-3/4 skeleton rounded"></div>
+          <div class="h-4 w-1/2 skeleton rounded"></div>
+          <div class="h-16 w-full skeleton rounded"></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+          <div class="flex justify-between"><div class="h-6 w-20 skeleton rounded-full"></div><div class="h-6 w-16 skeleton rounded-full"></div></div>
+          <div class="h-6 w-3/4 skeleton rounded"></div>
+          <div class="h-4 w-1/2 skeleton rounded"></div>
+          <div class="h-16 w-full skeleton rounded"></div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+          <div class="flex justify-between"><div class="h-6 w-20 skeleton rounded-full"></div><div class="h-6 w-16 skeleton rounded-full"></div></div>
+          <div class="h-6 w-3/4 skeleton rounded"></div>
+          <div class="h-4 w-1/2 skeleton rounded"></div>
+          <div class="h-16 w-full skeleton rounded"></div>
+        </div>
+      </div>
+
+      <!-- Items Cards Grid -->
+      <div id="items-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center max-w-lg mx-auto my-8">
+        <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="fa-regular fa-folder-open"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800">No items found</h3>
+        <p class="text-sm text-slate-500 mt-1 mb-6">
+          No reports match your current filter or search criteria.
+        </p>
+        <button 
+          onclick="document.getElementById('open-create-modal-btn').click()" 
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Report a Lost or Found Item</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- Footer Section                             -->
+  <!-- ========================================== -->
+  <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div>
+        <p class="font-medium text-slate-700">Collective Labs | Builders Group (CLBG) End-of-Bootcamp Assessment</p>
+        <p>Full-Stack CRUD Application • Node.js, Express, Persistent Database &amp; Tailwind</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Build • Learn • Create • Collaborate</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODAL: Create Item (POST)                  -->
+  <!-- ========================================== -->
+  <div id="create-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <i class="fa-solid fa-circle-plus"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">Report an Item</h3>
+        </div>
+        <button id="close-create-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="create-item-form" class="p-6 space-y-4">
+        <!-- Post Type Radio Options -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-2">Item Report Type *</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-rose-50/50 transition-colors has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/60 has-[:checked]:text-rose-700">
+              <input type="radio" name="post_type" value="Lost" checked class="text-rose-600 focus:ring-rose-500">
+              <span class="text-sm font-semibold"><i class="fa-solid fa-magnifying-glass mr-1"></i> I Lost an Item</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/60 has-[:checked]:text-emerald-700">
+              <input type="radio" name="post_type" value="Found" class="text-emerald-600 focus:ring-emerald-500">
+              <span class="text-sm font-semibold"><i class="fa-solid fa-hand-holding-heart mr-1"></i> I Found an Item</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div>
+          <label for="create-title" class="block text-xs font-semibold text-slate-700 mb-1">Item Title *</label>
+          <input 
+            type="text" 
+            id="create-title" 
+            name="title" 
+            required 
+            placeholder="e.g. Black Water Bottle (Hydro Flask)" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <!-- Category & Location Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="create-category" class="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+            <select 
+              id="create-category" 
+              name="category" 
+              required
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Books">Books</option>
+              <option value="Documents">Documents</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="create-location" class="block text-xs font-semibold text-slate-700 mb-1">Location on Campus *</label>
+            <input 
+              type="text" 
+              id="create-location" 
+              name="location" 
+              required 
+              placeholder="e.g. Science Lecture Hall B" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div>
+          <label for="create-contact" class="block text-xs font-semibold text-slate-700 mb-1">Contact Information (Fictional for Demo) *</label>
+          <input 
+            type="text" 
+            id="create-contact" 
+            name="contact_info" 
+            required 
+            placeholder="e.g. tunde.student@campus.edu or Dept Office" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+          <span class="text-[11px] text-slate-400">Do not enter personal phone numbers or confidential data.</span>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="create-desc" class="block text-xs font-semibold text-slate-700 mb-1">Identifying Details / Description *</label>
+          <textarea 
+            id="create-desc" 
+            name="description" 
+            rows="3" 
+            required 
+            placeholder="Describe color, brand, stickers, key marks, or exact spot where found..." 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          ></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button 
+            type="button" 
+            id="cancel-create-btn" 
+            class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all flex items-center gap-1.5"
+          >
+            <span>Post Report</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: Edit Item (PUT)                     -->
+  <!-- ========================================== -->
+  <div id="edit-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">Edit Item Details</h3>
+        </div>
+        <button id="close-edit-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="edit-item-form" class="p-6 space-y-4">
+        <input type="hidden" id="edit-item-id">
+
+        <!-- Post Type Radio Options -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-2">Item Report Type *</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-rose-50/50 transition-colors has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/60 has-[:checked]:text-rose-700">
+              <input type="radio" name="edit_post_type" value="Lost" class="text-rose-600 focus:ring-rose-500">
+              <span class="text-sm font-semibold">Lost Item</span>
+            </label>
+            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/60 has-[:checked]:text-emerald-700">
+              <input type="radio" name="edit_post_type" value="Found" class="text-emerald-600 focus:ring-emerald-500">
+              <span class="text-sm font-semibold">Found Item</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div>
+          <label for="edit-title" class="block text-xs font-semibold text-slate-700 mb-1">Item Title *</label>
+          <input 
+            type="text" 
+            id="edit-title" 
+            name="edit-title" 
+            required 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+        </div>
+
+        <!-- Status & Category Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="edit-status" class="block text-xs font-semibold text-slate-700 mb-1">Status *</label>
+            <select 
+              id="edit-status" 
+              name="edit-status" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+              <option value="Open">Open (Still Active)</option>
+              <option value="Claimed">Claimed (Owner Contacted)</option>
+              <option value="Returned">Returned (Reunited)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="edit-category" class="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+            <select 
+              id="edit-category" 
+              name="edit-category" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+              <option value="Electronics">Electronics</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Books">Books</option>
+              <option value="Documents">Documents</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Location & Contact Info Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="edit-location" class="block text-xs font-semibold text-slate-700 mb-1">Location *</label>
+            <input 
+              type="text" 
+              id="edit-location" 
+              name="edit-location" 
+              required 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+          </div>
+
+          <div>
+            <label for="edit-contact-info" class="block text-xs font-semibold text-slate-700 mb-1">Contact Details *</label>
+            <input 
+              type="text" 
+              id="edit-contact-info" 
+              name="edit-contact-info" 
+              required 
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            >
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="edit-description" class="block text-xs font-semibold text-slate-700 mb-1">Description *</label>
+          <textarea 
+            id="edit-description" 
+            name="edit-description" 
+            rows="3" 
+            required 
+            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          ></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button 
+            type="button" 
+            id="cancel-edit-btn" 
+            class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all flex items-center gap-1.5"
+          >
+            <span>Save Changes</span>
+            <i class="fa-solid fa-check text-xs"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: Delete Confirmation (DELETE)       -->
+  <!-- ========================================== -->
+  <div id="delete-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200 p-6 text-center">
+      <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Confirm Deletion</h3>
+      <p class="text-sm text-slate-600 mb-4">
+        Are you sure you want to permanently delete <strong id="delete-item-title" class="text-slate-800">this item</strong>? This action cannot be undone.
+      </p>
+
+      <div class="flex items-center justify-center gap-3">
+        <button 
+          id="cancel-delete-btn" 
+          class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          id="confirm-delete-btn" 
+          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all"
+        >
+          Delete Record
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

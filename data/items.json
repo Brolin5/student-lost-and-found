@@ -1,0 +1,35 @@
+[
+  {
+    "_id": "seed-item-1",
+    "title": "Black Water Bottle (Hydro Flask)",
+    "description": "Matte black 750ml water bottle left near the 2nd row in Lecture Theatre B.",
+    "post_type": "Lost",
+    "category": "Accessories",
+    "location": "Lecture Theatre B",
+    "contact_info": "tunde.sample@campus.edu",
+    "status": "Open",
+    "created_at": "2026-11-02T08:23:10.218Z"
+  },
+  {
+    "_id": "seed-item-2",
+    "title": "Scientific Calculator (Casio fx-991EX)",
+    "description": "Found on a table in the Science Library 1st floor reading section.",
+    "post_type": "Found",
+    "category": "Electronics",
+    "location": "Science Library, 1st Floor",
+    "contact_info": "library-desk.sample@campus.edu",
+    "status": "Open",
+    "created_at": "2026-11-02T20:23:10.218Z"
+  },
+  {
+    "_id": "seed-item-3",
+    "title": "Brown Leather Wallet with Student ID",
+    "description": "Contains student ID card and bus pass. Handed over to student affairs.",
+    "post_type": "Found",
+    "category": "Documents",
+    "location": "Campus Cafeteria walkway",
+    "contact_info": "affairs.sample@campus.edu",
+    "status": "Returned",
+    "created_at": "2026-11-01T08:23:10.218Z"
+  }
+]
