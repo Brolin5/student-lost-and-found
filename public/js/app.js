@@ -355,14 +355,14 @@ function renderItemsList() {
       );
 
       return `
-        <div class="item-card bg-white rounded-xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between" data-id="${id}">
+        <div class="item-card bg-white rounded-xl border border-slate-200/80 shadow-sm p-4 sm:p-5 flex flex-col justify-between" data-id="${id}">
           <div>
             <!-- Top Badges Row -->
-            <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center justify-between gap-1.5 mb-2.5 flex-wrap">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${typeBadgeClass}">
                 <i class="fa-solid ${typeIcon}"></i> ${item.post_type}
               </span>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5">
                 <span class="text-xs px-2.5 py-1 rounded-full font-medium ${statusBadgeClass}">
                   ${item.status}
                 </span>
@@ -385,40 +385,40 @@ function renderItemsList() {
             </div>
 
             <!-- Title -->
-            <h3 class="text-lg font-semibold text-slate-900 mb-1 leading-snug hover:text-blue-600 transition-colors">
+            <h3 class="text-base sm:text-lg font-semibold text-slate-900 mb-1 leading-snug hover:text-blue-600 transition-colors break-words">
               ${escapeHtml(item.title)}
             </h3>
 
             <!-- Location -->
-            <div class="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-              <i class="fa-solid fa-location-dot text-rose-500"></i>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500 mb-2.5 flex-wrap">
+              <i class="fa-solid fa-location-dot text-rose-500 shrink-0"></i>
               <span class="font-medium">${escapeHtml(item.location)}</span>
               <span class="text-slate-300">•</span>
               <span>${formatDate(item.created_at)}</span>
             </div>
 
             <!-- Description -->
-            <p class="text-sm text-slate-600 mb-4 line-clamp-3 leading-relaxed">
+            <p class="text-xs sm:text-sm text-slate-600 mb-3 line-clamp-3 leading-relaxed break-words">
               ${escapeHtml(item.description)}
             </p>
 
             <!-- Contact Info Box -->
-            <div class="bg-slate-50 border border-slate-200/60 rounded-lg p-2.5 text-xs text-slate-700 flex items-center gap-2 mb-4">
-              <i class="fa-solid fa-address-card text-blue-500 text-sm"></i>
-              <div>
-                <span class="text-slate-400 block font-normal">Contact / Reporter:</span>
-                <span class="font-medium select-all">${escapeHtml(item.contact_info)}</span>
+            <div class="bg-slate-50 border border-slate-200/60 rounded-lg p-2.5 text-xs text-slate-700 flex items-center gap-2 mb-3 break-all">
+              <i class="fa-solid fa-address-card text-blue-500 text-sm shrink-0"></i>
+              <div class="min-w-0">
+                <span class="text-slate-400 block font-normal text-[10px] sm:text-xs">Contact / Reporter:</span>
+                <span class="font-medium select-all block truncate sm:whitespace-normal">${escapeHtml(item.contact_info)}</span>
               </div>
             </div>
           </div>
 
           <!-- Bottom Action Area -->
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
             ${isOwner ? `
               <!-- Status Changer (Only for Owner or Admin) -->
               <select 
                 onchange="handleQuickStatusChange('${id}', this.value)" 
-                class="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer"
+                class="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:ring-1 focus:ring-blue-500 focus:outline-none cursor-pointer flex-1 sm:flex-initial min-w-[110px]"
                 title="Change Status"
               >
                 <option value="Open" ${item.status === 'Open' ? 'selected' : ''}>Status: Open</option>
@@ -426,7 +426,7 @@ function renderItemsList() {
                 <option value="Returned" ${item.status === 'Returned' ? 'selected' : ''}>Status: Returned</option>
               </select>
 
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1 shrink-0">
                 <button 
                   onclick="openEditModal('${id}')" 
                   class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -444,12 +444,12 @@ function renderItemsList() {
               </div>
             ` : `
               <!-- Protected View for Other Users -->
-              <div class="w-full flex items-center justify-between text-xs text-slate-400 py-1">
-                <span class="flex items-center gap-1.5">
-                  <i class="fa-solid fa-lock text-slate-300"></i>
-                  <span>Protected</span>
+              <div class="w-full flex items-center justify-between text-xs text-slate-400 py-1 gap-2 flex-wrap">
+                <span class="flex items-center gap-1.5 truncate">
+                  <i class="fa-solid fa-lock text-slate-300 text-xs shrink-0"></i>
+                  <span class="truncate">Protected</span>
                 </span>
-                <span class="text-slate-500 font-medium">Contact to claim item</span>
+                <span class="text-slate-500 font-medium text-[11px] sm:text-xs shrink-0">Contact to claim</span>
               </div>
             `}
           </div>

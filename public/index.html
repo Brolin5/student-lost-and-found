@@ -25,49 +25,52 @@
   <!-- Top Navigation Bar                         -->
   <!-- ========================================== -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-          <i class="fa-solid fa-compass-drafting text-xl"></i>
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+          <i class="fa-solid fa-compass-drafting text-lg sm:text-xl"></i>
         </div>
-        <div>
-          <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-none">
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-lg font-bold text-slate-900 tracking-tight leading-none truncate">
             Campus Lost &amp; Found
           </h1>
-          <span class="text-xs text-slate-500 font-medium">CLBG Software Development Bootcamp</span>
+          <span class="text-[11px] sm:text-xs text-slate-500 font-medium hidden sm:block mt-0.5">CLBG Software Development Bootcamp</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <!-- Action & Auth Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
         <!-- Auth User State Area -->
-        <div id="auth-unauthenticated" class="flex items-center gap-2">
+        <div id="auth-unauthenticated" class="flex items-center gap-1.5">
           <button 
             id="open-auth-btn" 
-            class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 transition-all"
+            class="inline-flex items-center gap-1 sm:gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-2.5 sm:px-3 py-2 rounded-lg border border-slate-200 transition-all"
           >
             <i class="fa-solid fa-right-to-bracket text-blue-600"></i>
             <span>Sign In</span>
           </button>
         </div>
 
-        <div id="auth-authenticated" class="hidden items-center gap-2">
-          <div class="inline-flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-            <i class="fa-solid fa-circle-user text-blue-600 text-sm"></i>
-            <span id="active-user-name" class="font-semibold text-slate-800">Student</span>
-            <span id="active-user-role-badge" class="hidden text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">Admin</span>
+        <div id="auth-authenticated" class="hidden items-center gap-1.5">
+          <div class="inline-flex items-center gap-1.5 sm:gap-2 bg-slate-100 border border-slate-200 px-2 sm:px-3 py-1.5 rounded-lg text-xs">
+            <i class="fa-solid fa-circle-user text-blue-600 text-sm shrink-0"></i>
+            <span id="active-user-name" class="font-semibold text-slate-800 max-w-[70px] xs:max-w-[100px] sm:max-w-[140px] truncate block">Student</span>
+            <span id="active-user-role-badge" class="hidden text-[9px] sm:text-[10px] bg-amber-100 text-amber-800 font-bold px-1 sm:px-1.5 py-0.5 rounded">Admin</span>
             <button 
               onclick="handleLogout()" 
-              class="ml-2 text-rose-600 hover:text-rose-700 font-semibold hover:underline border-l border-slate-200 pl-2"
-              title="Sign out of student account"
+              class="ml-1 text-rose-600 hover:text-rose-700 font-semibold hover:underline border-l border-slate-200 pl-1.5 sm:pl-2 shrink-0"
+              title="Sign out of account"
             >
-              Logout
+              <i class="fa-solid fa-arrow-right-from-bracket sm:hidden text-xs"></i>
+              <span class="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
 
         <button 
           id="open-create-modal-btn" 
-          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-blue-500/40 focus:outline-none active:scale-95"
+          class="inline-flex items-center gap-1 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-2.5 sm:px-4 py-2 rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-blue-500/40 focus:outline-none active:scale-95 shrink-0"
         >
           <i class="fa-solid fa-plus text-xs"></i>
           <span>Report Item</span>
@@ -79,92 +82,92 @@
   <!-- ========================================== -->
   <!-- Main Application Body                      -->
   <!-- ========================================== -->
-  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
     
     <!-- Hero / Headline Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/60 pb-5 sm:pb-6">
       <div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h2 class="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Lost something? Found something?
         </h2>
-        <p class="text-sm sm:text-base text-slate-600 mt-1 max-w-2xl">
+        <p class="text-xs sm:text-base text-slate-600 mt-1 max-w-2xl leading-relaxed">
           A centralized campus board connecting students with their misplaced belongings. Filter, search, and update item status in real time.
         </p>
       </div>
 
       <!-- Live Database Status Indicator -->
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-medium self-start md:self-auto">
+      <div class="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] sm:text-xs text-emerald-700 font-medium self-start md:self-auto shrink-0">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span>Connected to Live Database</span>
       </div>
     </div>
 
     <!-- Quick Analytics Stats Row -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
-        <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-4">
+        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-base sm:text-xl shrink-0">
           <i class="fa-solid fa-boxes-stacked"></i>
         </div>
-        <div>
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Reports</span>
-          <div id="stat-total" class="text-2xl font-bold text-slate-900">0</div>
+        <div class="min-w-0">
+          <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider block truncate">Total Reports</span>
+          <div id="stat-total" class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">0</div>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
-        <div class="w-12 h-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0">
+      <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-4">
+        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-base sm:text-xl shrink-0">
           <i class="fa-solid fa-magnifying-glass"></i>
         </div>
-        <div>
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lost Items</span>
-          <div id="stat-lost" class="text-2xl font-bold text-rose-600">0</div>
+        <div class="min-w-0">
+          <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider block truncate">Lost Items</span>
+          <div id="stat-lost" class="text-xl sm:text-2xl font-bold text-rose-600 leading-tight">0</div>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
-        <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+      <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-4">
+        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-base sm:text-xl shrink-0">
           <i class="fa-solid fa-hand-holding-heart"></i>
         </div>
-        <div>
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Found Items</span>
-          <div id="stat-found" class="text-2xl font-bold text-emerald-600">0</div>
+        <div class="min-w-0">
+          <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider block truncate">Found Items</span>
+          <div id="stat-found" class="text-xl sm:text-2xl font-bold text-emerald-600 leading-tight">0</div>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center gap-4">
-        <div class="w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+      <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-4">
+        <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-base sm:text-xl shrink-0">
           <i class="fa-solid fa-circle-check"></i>
         </div>
-        <div>
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resolved / Reunited</span>
-          <div id="stat-returned" class="text-2xl font-bold text-indigo-600">0</div>
+        <div class="min-w-0">
+          <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider block truncate">Resolved</span>
+          <div id="stat-returned" class="text-xl sm:text-2xl font-bold text-indigo-600 leading-tight">0</div>
         </div>
       </div>
     </section>
 
     <!-- Filter & Search Toolbar -->
-    <section class="bg-white rounded-xl p-4 border border-slate-200 shadow-xs space-y-4">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <!-- Post Type Tabs -->
-        <div class="flex items-center bg-slate-100 p-1 rounded-lg shrink-0">
-          <button data-type="All" class="type-tab px-4 py-1.5 rounded-md text-xs font-semibold bg-blue-600 text-white shadow-xs transition-all">
+    <section class="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3 sm:space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+        <!-- Post Type Tabs (Full width grid on mobile) -->
+        <div class="grid grid-cols-3 sm:flex items-center bg-slate-100 p-1 rounded-lg w-full sm:w-auto text-center shrink-0">
+          <button data-type="All" class="type-tab px-3 sm:px-4 py-2 sm:py-1.5 rounded-md text-xs font-semibold bg-blue-600 text-white shadow-xs transition-all">
             All Items
           </button>
-          <button data-type="Lost" class="type-tab px-4 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-all">
+          <button data-type="Lost" class="type-tab px-3 sm:px-4 py-2 sm:py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-all">
             <i class="fa-solid fa-magnifying-glass mr-1 text-rose-500"></i> Lost
           </button>
-          <button data-type="Found" class="type-tab px-4 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-all">
+          <button data-type="Found" class="type-tab px-3 sm:px-4 py-2 sm:py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition-all">
             <i class="fa-solid fa-hand-holding-heart mr-1 text-emerald-500"></i> Found
           </button>
         </div>
 
         <!-- Search Bar -->
-        <div class="relative flex-1 max-w-md">
+        <div class="relative flex-1 max-w-full lg:max-w-md w-full">
           <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
           <input 
             type="text" 
             id="search-input" 
-            placeholder="Search items by title, location, or keyword..."
+            placeholder="Search by title, location, keyword..."
             class="w-full pl-10 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           >
           <button id="clear-search-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -172,11 +175,11 @@
           </button>
         </div>
 
-        <!-- Dropdown Filters (Category & Status) -->
-        <div class="flex items-center gap-3 shrink-0">
-          <div class="flex items-center gap-1.5">
-            <label for="category-filter" class="text-xs font-semibold text-slate-500">Category:</label>
-            <select id="category-filter" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+        <!-- Dropdown Filters (2-column grid on mobile, horizontal on desktop) -->
+        <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3 w-full sm:w-auto shrink-0">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5">
+            <label for="category-filter" class="text-[11px] sm:text-xs font-semibold text-slate-500">Category:</label>
+            <select id="category-filter" class="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 sm:px-3 py-2 text-slate-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
               <option value="All">All Categories</option>
               <option value="Electronics">Electronics</option>
               <option value="Clothing">Clothing</option>
@@ -187,9 +190,9 @@
             </select>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <label for="status-filter" class="text-xs font-semibold text-slate-500">Status:</label>
-            <select id="status-filter" class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5">
+            <label for="status-filter" class="text-[11px] sm:text-xs font-semibold text-slate-500">Status:</label>
+            <select id="status-filter" class="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 sm:px-3 py-2 text-slate-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none">
               <option value="All">All Statuses</option>
               <option value="Open">Open</option>
               <option value="Claimed">Claimed</option>
@@ -205,20 +208,20 @@
     <!-- ========================================== -->
     <section>
       <!-- Loading Skeleton State -->
-      <div id="loading-state" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+      <div id="loading-state" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4">
           <div class="flex justify-between"><div class="h-6 w-20 skeleton rounded-full"></div><div class="h-6 w-16 skeleton rounded-full"></div></div>
           <div class="h-6 w-3/4 skeleton rounded"></div>
           <div class="h-4 w-1/2 skeleton rounded"></div>
           <div class="h-16 w-full skeleton rounded"></div>
         </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+        <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4">
           <div class="flex justify-between"><div class="h-6 w-20 skeleton rounded-full"></div><div class="h-6 w-16 skeleton rounded-full"></div></div>
           <div class="h-6 w-3/4 skeleton rounded"></div>
           <div class="h-4 w-1/2 skeleton rounded"></div>
           <div class="h-16 w-full skeleton rounded"></div>
         </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+        <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4">
           <div class="flex justify-between"><div class="h-6 w-20 skeleton rounded-full"></div><div class="h-6 w-16 skeleton rounded-full"></div></div>
           <div class="h-6 w-3/4 skeleton rounded"></div>
           <div class="h-4 w-1/2 skeleton rounded"></div>
@@ -227,22 +230,22 @@
       </div>
 
       <!-- Items Cards Grid -->
-      <div id="items-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="items-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <!-- Rendered dynamically by app.js -->
       </div>
 
       <!-- Empty State -->
-      <div id="empty-state" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center max-w-lg mx-auto my-8">
-        <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+      <div id="empty-state" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-8 sm:p-12 text-center max-w-lg mx-auto my-6 sm:my-8">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 sm:mb-4 text-xl sm:text-2xl">
           <i class="fa-regular fa-folder-open"></i>
         </div>
-        <h3 class="text-lg font-bold text-slate-800">No items found</h3>
-        <p class="text-sm text-slate-500 mt-1 mb-6">
+        <h3 class="text-base sm:text-lg font-bold text-slate-800">No items found</h3>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1 mb-5 sm:mb-6">
           No reports match your current filter or search criteria.
         </p>
         <button 
           onclick="document.getElementById('open-create-modal-btn').click()" 
-          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-lg transition-all"
         >
           <i class="fa-solid fa-plus text-xs"></i>
           <span>Report a Lost or Found Item</span>
@@ -255,13 +258,13 @@
   <!-- ========================================== -->
   <!-- Footer Section                             -->
   <!-- ========================================== -->
-  <footer class="bg-white border-t border-slate-200 mt-auto py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+  <footer class="bg-white border-t border-slate-200 mt-auto py-5 sm:py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-xs text-slate-500 text-center sm:text-left">
       <div>
         <p class="font-medium text-slate-700">Collective Labs | Builders Group (CLBG) End-of-Bootcamp Assessment</p>
-        <p>Full-Stack CRUD Application • Node.js, Express, Persistent Database &amp; Tailwind</p>
+        <p class="text-[11px] sm:text-xs text-slate-400">Full-Stack CRUD Application • Node.js, Express, Persistent Database &amp; Tailwind</p>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 text-slate-400 font-medium">
         <span>Build • Learn • Create • Collaborate</span>
       </div>
     </div>
@@ -270,32 +273,32 @@
   <!-- ========================================== -->
   <!-- MODAL: Create Item (POST)                  -->
   <!-- ========================================== -->
-  <div id="create-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+  <div id="create-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
             <i class="fa-solid fa-circle-plus"></i>
           </div>
           <h3 class="text-base font-bold text-slate-900">Report an Item</h3>
         </div>
-        <button id="close-create-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+        <button id="close-create-modal-btn" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <form id="create-item-form" class="p-6 space-y-4">
+      <form id="create-item-form" class="modal-scrollable-form p-4 sm:p-6 space-y-3.5 sm:space-y-4 flex-1">
         <!-- Post Type Radio Options -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-2">Item Report Type *</label>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-rose-50/50 transition-colors has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/60 has-[:checked]:text-rose-700">
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Item Report Type *</label>
+          <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <label class="flex items-center justify-center gap-2 p-2.5 sm:p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-rose-50/50 transition-colors has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/60 has-[:checked]:text-rose-700">
               <input type="radio" name="post_type" value="Lost" checked class="text-rose-600 focus:ring-rose-500">
-              <span class="text-sm font-semibold"><i class="fa-solid fa-magnifying-glass mr-1"></i> I Lost an Item</span>
+              <span class="text-xs sm:text-sm font-semibold"><i class="fa-solid fa-magnifying-glass mr-1"></i> I Lost Item</span>
             </label>
-            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/60 has-[:checked]:text-emerald-700">
+            <label class="flex items-center justify-center gap-2 p-2.5 sm:p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/60 has-[:checked]:text-emerald-700">
               <input type="radio" name="post_type" value="Found" class="text-emerald-600 focus:ring-emerald-500">
-              <span class="text-sm font-semibold"><i class="fa-solid fa-hand-holding-heart mr-1"></i> I Found an Item</span>
+              <span class="text-xs sm:text-sm font-semibold"><i class="fa-solid fa-hand-holding-heart mr-1"></i> I Found Item</span>
             </label>
           </div>
         </div>
@@ -309,19 +312,19 @@
             name="title" 
             required 
             placeholder="e.g. Black Water Bottle (Hydro Flask)" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
         <!-- Category & Location Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label for="create-category" class="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
             <select 
               id="create-category" 
               name="category" 
               required
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
               <option value="Electronics">Electronics</option>
               <option value="Clothing">Clothing</option>
@@ -340,7 +343,7 @@
               name="location" 
               required 
               placeholder="e.g. Science Lecture Hall B" 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
           </div>
         </div>
@@ -354,9 +357,9 @@
             name="contact_info" 
             required 
             placeholder="e.g. tunde.student@campus.edu or Dept Office" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
-          <span class="text-[11px] text-slate-400">Do not enter personal phone numbers or confidential data.</span>
+          <span class="text-[10px] sm:text-[11px] text-slate-400">Do not enter personal phone numbers or confidential data.</span>
         </div>
 
         <!-- Description -->
@@ -368,22 +371,22 @@
             rows="3" 
             required 
             placeholder="Describe color, brand, stickers, key marks, or exact spot where found..." 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           ></textarea>
         </div>
 
         <!-- Actions -->
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5 sm:gap-3 shrink-0">
           <button 
             type="button" 
             id="cancel-create-btn" 
-            class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+            class="px-4 py-2 sm:py-2.5 border border-slate-200 text-slate-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button 
             type="submit" 
-            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all flex items-center gap-1.5"
+            class="px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-all flex items-center gap-1.5"
           >
             <span>Post Report</span>
             <i class="fa-solid fa-arrow-right text-xs"></i>
@@ -396,34 +399,34 @@
   <!-- ========================================== -->
   <!-- MODAL: Edit Item (PUT)                     -->
   <!-- ========================================== -->
-  <div id="edit-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+  <div id="edit-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
             <i class="fa-solid fa-pen-to-square"></i>
           </div>
           <h3 class="text-base font-bold text-slate-900">Edit Item Details</h3>
         </div>
-        <button id="close-edit-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+        <button id="close-edit-modal-btn" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
-      <form id="edit-item-form" class="p-6 space-y-4">
+      <form id="edit-item-form" class="modal-scrollable-form p-4 sm:p-6 space-y-3.5 sm:space-y-4 flex-1">
         <input type="hidden" id="edit-item-id">
 
         <!-- Post Type Radio Options -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-2">Item Report Type *</label>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-rose-50/50 transition-colors has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/60 has-[:checked]:text-rose-700">
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Item Report Type *</label>
+          <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <label class="flex items-center justify-center gap-2 p-2.5 sm:p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-rose-50/50 transition-colors has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50/60 has-[:checked]:text-rose-700">
               <input type="radio" name="edit_post_type" value="Lost" class="text-rose-600 focus:ring-rose-500">
-              <span class="text-sm font-semibold">Lost Item</span>
+              <span class="text-xs sm:text-sm font-semibold">Lost Item</span>
             </label>
-            <label class="flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/60 has-[:checked]:text-emerald-700">
+            <label class="flex items-center justify-center gap-2 p-2.5 sm:p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-emerald-50/50 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/60 has-[:checked]:text-emerald-700">
               <input type="radio" name="edit_post_type" value="Found" class="text-emerald-600 focus:ring-emerald-500">
-              <span class="text-sm font-semibold">Found Item</span>
+              <span class="text-xs sm:text-sm font-semibold">Found Item</span>
             </label>
           </div>
         </div>
@@ -436,18 +439,18 @@
             id="edit-title" 
             name="edit-title" 
             required 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
         <!-- Status & Category Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label for="edit-status" class="block text-xs font-semibold text-slate-700 mb-1">Status *</label>
             <select 
               id="edit-status" 
               name="edit-status" 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
               <option value="Open">Open (Still Active)</option>
               <option value="Claimed">Claimed (Owner Contacted)</option>
@@ -460,7 +463,7 @@
             <select 
               id="edit-category" 
               name="edit-category" 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
               <option value="Electronics">Electronics</option>
               <option value="Clothing">Clothing</option>
@@ -473,7 +476,7 @@
         </div>
 
         <!-- Location & Contact Info Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label for="edit-location" class="block text-xs font-semibold text-slate-700 mb-1">Location *</label>
             <input 
@@ -481,7 +484,7 @@
               id="edit-location" 
               name="edit-location" 
               required 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
           </div>
 
@@ -492,7 +495,7 @@
               id="edit-contact-info" 
               name="edit-contact-info" 
               required 
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             >
           </div>
         </div>
@@ -505,22 +508,22 @@
             name="edit-description" 
             rows="3" 
             required 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           ></textarea>
         </div>
 
         <!-- Actions -->
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5 sm:gap-3 shrink-0">
           <button 
             type="button" 
             id="cancel-edit-btn" 
-            class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+            class="px-4 py-2 sm:py-2.5 border border-slate-200 text-slate-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button 
             type="submit" 
-            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all flex items-center gap-1.5"
+            class="px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-all flex items-center gap-1.5"
           >
             <span>Save Changes</span>
             <i class="fa-solid fa-check text-xs"></i>
@@ -533,22 +536,22 @@
   <!-- ========================================== -->
   <!-- MODAL: Authentication (Login / Register)   -->
   <!-- ========================================== -->
-  <div id="auth-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+  <div id="auth-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
             <i class="fa-solid fa-user-lock"></i>
           </div>
           <h3 id="auth-modal-title" class="text-base font-bold text-slate-900">Student Sign In</h3>
         </div>
-        <button id="close-auth-modal-btn" class="text-slate-400 hover:text-slate-600 p-1">
+        <button id="close-auth-modal-btn" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
 
       <!-- Auth Tabs -->
-      <div class="px-6 pt-4 flex border-b border-slate-100 gap-4">
+      <div class="px-4 sm:px-6 pt-3 sm:pt-4 flex border-b border-slate-100 gap-4 shrink-0">
         <button id="auth-tab-login" type="button" class="pb-2 text-xs font-bold text-blue-600 border-b-2 border-blue-600">
           Sign In
         </button>
@@ -558,7 +561,7 @@
       </div>
 
       <!-- Login Form -->
-      <form id="login-form" class="p-6 space-y-4">
+      <form id="login-form" class="modal-scrollable-form p-4 sm:p-6 space-y-3.5 sm:space-y-4 flex-1">
         <div>
           <label for="login-username" class="block text-xs font-semibold text-slate-700 mb-1">Username *</label>
           <input 
@@ -566,7 +569,7 @@
             id="login-username" 
             required 
             placeholder="e.g. tunde" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
@@ -577,39 +580,39 @@
             id="login-password" 
             required 
             placeholder="••••••••" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
         <button 
           type="submit" 
-          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all"
+          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-all"
         >
           Sign In
         </button>
 
         <!-- Quick 1-Click Demo Logins for Assessors -->
         <div class="pt-3 border-t border-slate-100 text-center">
-          <span class="text-[11px] text-slate-400 block mb-2 font-medium">Quick 1-Click Demo Accounts:</span>
-          <div class="flex items-center justify-center gap-2 flex-wrap">
+          <span class="text-[10px] sm:text-[11px] text-slate-400 block mb-2 font-medium">Quick 1-Click Demo Accounts:</span>
+          <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
             <button 
               type="button" 
               onclick="demoLogin('tunde', 'password123')"
-              class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium"
+              class="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-center"
             >
               👤 Tunde
             </button>
             <button 
               type="button" 
               onclick="demoLogin('chioma', 'password123')"
-              class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium"
+              class="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-center"
             >
               👤 Chioma
             </button>
             <button 
               type="button" 
               onclick="demoLogin('admin', 'admin123')"
-              class="px-2.5 py-1 text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-md font-medium border border-amber-200"
+              class="px-2 py-1.5 text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg font-medium border border-amber-200 text-center"
             >
               🛡️ Admin
             </button>
@@ -618,7 +621,7 @@
       </form>
 
       <!-- Register Form -->
-      <form id="register-form" class="hidden p-6 space-y-4">
+      <form id="register-form" class="hidden modal-scrollable-form p-4 sm:p-6 space-y-3.5 sm:space-y-4 flex-1">
         <div>
           <label for="register-name" class="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
           <input 
@@ -626,7 +629,7 @@
             id="register-name" 
             required 
             placeholder="e.g. Samuel Ade" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
@@ -637,7 +640,7 @@
             id="register-username" 
             required 
             placeholder="e.g. samuel99" 
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
@@ -649,13 +652,13 @@
             required 
             placeholder="••••••••" 
             minlength="6"
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            class="w-full px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           >
         </div>
 
         <button 
           type="submit" 
-          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all"
+          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-all"
         >
           Create Account
         </button>
@@ -666,29 +669,29 @@
   <!-- ========================================== -->
   <!-- MODAL: Delete Confirmation (DELETE)       -->
   <!-- ========================================== -->
-  <div id="delete-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200 p-6 text-center relative">
-      <button id="close-delete-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+  <div id="delete-modal" class="modal-backdrop modal-hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200 p-5 sm:p-6 text-center relative">
+      <button id="close-delete-modal-btn" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
-      <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl">
+      <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3 sm:mb-4 text-xl sm:text-2xl">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 mb-1">Confirm Deletion</h3>
-      <p class="text-sm text-slate-600 mb-4">
-        Are you sure you want to permanently delete <strong id="delete-item-title" class="text-slate-800">this item</strong>? This action cannot be undone.
+      <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1">Confirm Deletion</h3>
+      <p class="text-xs sm:text-sm text-slate-600 mb-4 sm:mb-5 leading-relaxed">
+        Are you sure you want to permanently delete <strong id="delete-item-title" class="text-slate-800 break-words">this item</strong>? This action cannot be undone.
       </p>
 
-      <div class="flex items-center justify-center gap-3">
+      <div class="flex items-center justify-center gap-2.5 sm:gap-3">
         <button 
           id="cancel-delete-btn" 
-          class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+          class="px-4 py-2 sm:py-2.5 border border-slate-200 text-slate-600 rounded-lg text-xs sm:text-sm font-medium hover:bg-slate-50 transition-colors flex-1 sm:flex-initial"
         >
           Cancel
         </button>
         <button 
           id="confirm-delete-btn" 
-          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all"
+          class="px-5 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-xs transition-all flex-1 sm:flex-initial"
         >
           Delete Record
         </button>
