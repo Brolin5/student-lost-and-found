@@ -162,7 +162,14 @@ exports.updateItem = async (req, res) => {
     // Authorization Check: Only creator or admin can update
     const userId = req.user?.id || req.body?.user_id || req.headers['x-user-id'];
     const userRole = req.user?.role || req.body?.user_role || req.headers['x-user-role'];
-    if (existing.creator_id && userId && existing.creator_id !== userId && userRole !== 'admin') {
+    const username = req.user?.username;
+
+    const isAuthorized = 
+      userRole === 'admin' ||
+      (existing.creator_id && userId && existing.creator_id === userId) ||
+      (existing.creator_username && username && existing.creator_username.toLowerCase() === username.toLowerCase());
+
+    if (!isAuthorized) {
       return res.status(403).json({
         success: false,
         message: 'Permission denied: Only the student who created this post or a campus administrator can edit it.'
@@ -259,7 +266,14 @@ exports.deleteItem = async (req, res) => {
     // Authorization Check: Only creator or admin can delete
     const userId = req.user?.id || req.body?.user_id || req.headers['x-user-id'];
     const userRole = req.user?.role || req.body?.user_role || req.headers['x-user-role'];
-    if (existing.creator_id && userId && existing.creator_id !== userId && userRole !== 'admin') {
+    const username = req.user?.username;
+
+    const isAuthorized = 
+      userRole === 'admin' ||
+      (existing.creator_id && userId && existing.creator_id === userId) ||
+      (existing.creator_username && username && existing.creator_username.toLowerCase() === username.toLowerCase());
+
+    if (!isAuthorized) {
       return res.status(403).json({
         success: false,
         message: 'Permission denied: Only the student who created this post or a campus administrator can delete it.'

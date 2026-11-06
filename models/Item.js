@@ -90,8 +90,9 @@ const ensureDataFile = () => {
         location: 'Lecture Theatre B',
         contact_info: 'tunde.sample@campus.edu',
         status: 'Open',
-        creator_id: 'student-tunde',
+        creator_id: 'user-tunde',
         creator_name: 'Tunde Adebayo',
+        creator_username: 'tunde',
         created_at: new Date(Date.now() - 3600000 * 24).toISOString()
       },
       {
@@ -101,10 +102,11 @@ const ensureDataFile = () => {
         post_type: 'Found',
         category: 'Electronics',
         location: 'Science Library, 1st Floor',
-        contact_info: 'library-desk.sample@campus.edu',
+        contact_info: 'admin.security@campus.edu',
         status: 'Open',
-        creator_id: 'staff-library',
-        creator_name: 'Library Front Desk',
+        creator_id: 'user-admin',
+        creator_name: 'Campus Security Desk',
+        creator_username: 'admin',
         created_at: new Date(Date.now() - 3600000 * 12).toISOString()
       },
       {
@@ -114,10 +116,11 @@ const ensureDataFile = () => {
         post_type: 'Found',
         category: 'Documents',
         location: 'Campus Cafeteria walkway',
-        contact_info: 'affairs.sample@campus.edu',
+        contact_info: 'chioma.sample@campus.edu',
         status: 'Returned',
-        creator_id: 'student-chioma',
+        creator_id: 'user-chioma',
         creator_name: 'Chioma Okeke',
+        creator_username: 'chioma',
         created_at: new Date(Date.now() - 3600000 * 48).toISOString()
       }
     ];

@@ -22,37 +22,5 @@
     "password": "$2b$10$lRR3wrjcHZDS9WJzfyolY.jpWumuoBOdP5DS/coKOJ47cZDzkI6Xq",
     "role": "admin",
     "created_at": "2026-11-03T10:40:15.473Z"
-  },
-  {
-    "_id": "usr_mw0k3tni5wy1",
-    "username": "teststudent_mw0k3tat",
-    "name": "Test Student User",
-    "password": "$2b$10$7Oz7ICPDSLMsHXPXWBy0Y.kcq4FMYqdOedaAzIv2HgwS5tkWBAEcK",
-    "role": "student",
-    "created_at": "2026-11-03T10:40:15.582Z"
-  },
-  {
-    "_id": "usr_mw0k3tys3ytw",
-    "username": "otherstudent_mw0k3tvw",
-    "name": "Other Student",
-    "password": "$2b$10$2R17ve.BZjbvZcPc7kf19eFbVu3F8NKzfuYrAzbqynmSpLdWxVWVq",
-    "role": "student",
-    "created_at": "2026-11-03T10:40:15.988Z"
-  },
-  {
-    "_id": "usr_mw0k4wfvgpuv",
-    "username": "teststudent_mw0k4wbm",
-    "name": "Test Student User",
-    "password": "$2b$10$sW1fTpqaKWR5FCN1Bu.DEu7jwVzvB4U.xm10RUtFVuToicgBFq7G6",
-    "role": "student",
-    "created_at": "2026-11-03T10:41:05.851Z"
-  },
-  {
-    "_id": "usr_mw0k4wrevk8z",
-    "username": "otherstudent_mw0k4wog",
-    "name": "Other Student",
-    "password": "$2b$10$FPEduBLvJ9uKtEki.zSwVOe0W9/0Sw7nGtMO.Kx0DJ4RQtMI6i3ym",
-    "role": "student",
-    "created_at": "2026-11-03T10:41:06.266Z"
   }
 ]

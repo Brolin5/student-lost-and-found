@@ -8,6 +8,9 @@
     "location": "Lecture Theatre B",
     "contact_info": "tunde.sample@campus.edu",
     "status": "Open",
+    "creator_id": "user-tunde",
+    "creator_name": "Tunde Adebayo",
+    "creator_username": "tunde",
     "created_at": "2026-11-02T08:23:10.218Z"
   },
   {
@@ -17,8 +20,11 @@
     "post_type": "Found",
     "category": "Electronics",
     "location": "Science Library, 1st Floor",
-    "contact_info": "library-desk.sample@campus.edu",
+    "contact_info": "admin.security@campus.edu",
     "status": "Open",
+    "creator_id": "user-admin",
+    "creator_name": "Campus Security Desk",
+    "creator_username": "admin",
     "created_at": "2026-11-02T20:23:10.218Z"
   },
   {
@@ -28,8 +34,11 @@
     "post_type": "Found",
     "category": "Documents",
     "location": "Campus Cafeteria walkway",
-    "contact_info": "affairs.sample@campus.edu",
+    "contact_info": "chioma.sample@campus.edu",
     "status": "Returned",
+    "creator_id": "user-chioma",
+    "creator_name": "Chioma Okeke",
+    "creator_username": "chioma",
     "created_at": "2026-11-01T08:23:10.218Z"
   }
 ]
