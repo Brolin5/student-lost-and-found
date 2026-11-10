@@ -2210,67 +2210,66 @@ export default function App() {
       {/* ---------------------------------------------------- */}
       {isClaimModalOpen && activeItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl bg-white border border-[#E5E9F2] p-6 shadow-2xl animate-motion-blur-dialog space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="w-full max-w-sm rounded-2xl bg-white border border-[#E5E9F2] p-5 shadow-2xl animate-motion-blur-dialog space-y-4">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-wider block">
-                  OWNERSHIP VERIFICATION
-                </span>
-                <h3 className="font-heading font-extrabold text-base text-[#1E4FA3]">
+                <h3 className="font-heading font-bold text-[15px] text-[#1F2328] leading-snug">
                   Claim "{activeItem.title}"
                 </h3>
+                <p className="text-xs text-[#6B7280] mt-0.5">
+                  Share a detail only the owner would know.
+                </p>
               </div>
-              <button onClick={() => setIsClaimModalOpen(false)} className="text-[#6B7280]">
+              <button
+                onClick={() => setIsClaimModalOpen(false)}
+                className="p-1 rounded-lg text-[#6B7280] hover:text-[#1F2328] hover:bg-slate-100 transition-colors cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              To protect student belongings and prevent fraudulent claims, describe secret details only the true owner would know (e.g. wallpaper, specific scratch, lock code hint, or serial number).
-            </p>
-
             <form onSubmit={handleSubmitClaim} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-                  Secret Identifying Detail *
+                <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+                  Proof of ownership
                 </label>
                 <textarea
                   required
-                  rows={3}
+                  rows={2}
                   value={claimVerificationAnswer}
                   onChange={(e) => setClaimVerificationAnswer(e.target.value)}
-                  placeholder="e.g. Inside the battery cover my initials 'C.O.' are engraved with a blue marker."
-                  className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl p-3 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3]"
+                  placeholder="e.g. Initials 'C.O.' inside cover or lock-screen wallpaper"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl p-2.5 text-[13px] text-[#1F2328] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1E4FA3] transition-colors"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-                  Your Contact Phone / Email (Shared upon verification)
+                <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+                  Phone or email
                 </label>
                 <input
                   type="text"
                   value={claimContact}
                   onChange={(e) => setClaimContact(e.target.value)}
-                  placeholder="e.g. 08012345678 or student@nileuniversity.edu.ng"
-                  className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3]"
+                  placeholder="e.g. 08012345678"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-[13px] text-[#1F2328] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1E4FA3] transition-colors"
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setIsClaimModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-100 text-xs font-bold text-[#6B7280] btn-spring"
+                  className="flex-1 py-2.5 rounded-xl bg-[#F1F5F9] hover:bg-slate-200 text-xs font-semibold text-[#475569] btn-spring cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={claimSubmitting}
-                  className="flex-1 py-2.5 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-heading font-bold btn-spring shadow-xs disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-heading font-bold btn-spring shadow-xs disabled:opacity-50 cursor-pointer"
                 >
-                  {claimSubmitting ? 'Submitting...' : 'Submit Claim Request →'}
+                  {claimSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
               </div>
             </form>
@@ -2615,29 +2614,27 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E5E9F2] shadow-2xl overflow-hidden animate-motion-blur-dialog">
+      <div className="w-full max-w-md rounded-2xl bg-white border border-[#E5E9F2] shadow-2xl overflow-hidden animate-motion-blur-dialog">
         {/* Modal Header */}
-        <div className="p-4 bg-[#EEF2F9] border-b border-[#E5E9F2] flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-wider block">
-              CAMPUS PROPERTY REGISTRY
-            </span>
-            <h3 className="font-heading font-extrabold text-base text-[#1E4FA3]">
-              {mode === 'create' ? `Report a ${formData.post_type} Item` : 'Edit Property Report'}
-            </h3>
-          </div>
-          <button onClick={onClose} className="text-[#6B7280] hover:text-[#1F2328] btn-spring">
+        <div className="px-5 py-4 border-b border-[#E5E9F2] flex items-center justify-between">
+          <h3 className="font-heading font-bold text-[15px] text-[#1F2328]">
+            {mode === 'create' ? `Report ${formData.post_type} Item` : 'Edit Item'}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-[#6B7280] hover:text-[#1F2328] hover:bg-slate-100 transition-colors cursor-pointer"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto">
           {/* Post Type & Category Custom Selectors */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-                Post Type
+              <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+                Type
               </label>
               <CustomSelect
                 value={formData.post_type}
@@ -2647,7 +2644,7 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
+              <label className="block text-xs font-semibold text-[#1F2328] mb-1">
                 Category
               </label>
               <CustomSelect
@@ -2660,69 +2657,69 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
 
           {/* Title */}
           <div>
-            <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-              Item Title *
+            <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+              Item title
             </label>
             <input
               type="text"
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g. Casio Scientific Calculator fx-991EX"
-              className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3]"
+              placeholder="e.g. Casio Calculator FX-991EX"
+              className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-[13px] text-[#1F2328] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1E4FA3]"
             />
           </div>
 
           {/* Location & Contact */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-                Campus Location *
+              <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+                Location
               </label>
               <input
                 type="text"
                 required
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="e.g. Lecture Hall 3, Library 2nd Floor"
-                className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3]"
+                placeholder="e.g. Lecture Hall 3"
+                className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-[13px] text-[#1F2328] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1E4FA3]"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-                Contact Info *
+              <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+                Contact
               </label>
               <input
                 type="text"
                 required
                 value={formData.contact_info}
                 onChange={(e) => setFormData({ ...formData, contact_info: e.target.value })}
-                placeholder="Phone or Student Email"
-                className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3]"
+                placeholder="Phone or email"
+                className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl px-3 py-2 text-[13px] text-[#1F2328] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1E4FA3]"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-              Description & Identifying Marks *
+            <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+              Short description
             </label>
             <textarea
               required
-              rows={3}
+              rows={2}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Provide color, brand, stickers, scratches, or unique contents..."
-              className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl p-3 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3]"
+              placeholder="Color, brand, or where it was seen..."
+              className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl p-2.5 text-[13px] text-[#1F2328] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1E4FA3]"
             ></textarea>
           </div>
 
           {/* Real Photo Uploader */}
           <div>
-            <label className="block text-[11px] font-bold text-[#1F2328] uppercase mb-1">
-              Upload Item Photo (Drag & Drop or Tap)
+            <label className="block text-xs font-semibold text-[#1F2328] mb-1">
+              Photo (optional)
             </label>
             <div
               onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
@@ -2733,7 +2730,7 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
                 if (e.dataTransfer.files?.[0]) handleFileChange(e.dataTransfer.files[0]);
               }}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-colors ${
+              className={`border border-dashed rounded-xl p-3.5 text-center cursor-pointer transition-colors ${
                 dragActive ? 'border-[#1E4FA3] bg-[#EEF2F9]' : 'border-[#CBD5E1] hover:border-[#1E4FA3] bg-[#F8FAFC]'
               }`}
             >
@@ -2747,7 +2744,7 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
 
               {previewUrl ? (
                 <div className="relative inline-block">
-                  <img src={previewUrl} alt="Preview" className="h-32 rounded-xl object-cover shadow-sm mx-auto" />
+                  <img src={previewUrl} alt="Preview" className="h-28 rounded-xl object-cover shadow-sm mx-auto" />
                   <button
                     type="button"
                     onClick={(e) => {
@@ -2762,30 +2759,29 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-1">
-                  <Upload className="w-7 h-7 text-[#1E4FA3] mx-auto" />
-                  <p className="text-xs font-semibold text-[#1F2328]">Drag photo here or tap to choose</p>
-                  <p className="text-[10px] text-[#6B7280]">Supports JPG, PNG, WebP up to 10MB</p>
+                <div className="flex items-center justify-center gap-2 py-1">
+                  <Upload className="w-4 h-4 text-[#1E4FA3]" />
+                  <span className="text-xs font-medium text-[#475569]">Tap to upload photo</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Submit / Cancel */}
-          <div className="flex items-center gap-2 pt-2 border-t border-[#E5E9F2]">
+          <div className="flex items-center gap-2.5 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl bg-slate-100 text-xs font-bold text-[#6B7280] btn-spring"
+              className="flex-1 py-2.5 rounded-xl bg-[#F1F5F9] hover:bg-slate-200 text-xs font-semibold text-[#475569] btn-spring cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-2.5 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-heading font-bold btn-spring shadow-xs disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-heading font-bold btn-spring shadow-xs disabled:opacity-50 cursor-pointer"
             >
-              <span>{submitting ? 'Publishing Report...' : mode === 'create' ? 'Publish Report →' : 'Save Changes'}</span>
+              {submitting ? 'Submitting...' : mode === 'create' ? 'Submit' : 'Save'}
             </button>
           </div>
         </form>
