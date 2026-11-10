@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { connectDB } = require('./config/db');
 const itemRoutes = require('./routes/itemRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -12,17 +13,32 @@ const PORT = process.env.PORT || 5000;
 // Connect to Database
 connectDB();
 
-// Middleware
+// Middleware with generous payload limit for image data
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
-// Serve frontend static assets from public directory
+// Ensure public/uploads directory exists and is served statically
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
+// Serve compiled React build (dist) if available, otherwise serve public
+const distDir = path.join(__dirname, 'dist');
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/upload', (req, res, next) => {
+  req.url = '/upload';
+  itemRoutes(req, res, next);
+});
 
 // Health check endpoint for deployment monitoring
 app.get('/api/health', (req, res) => {
@@ -33,13 +49,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Fallback for SPA/HTML routes: serve index.html if no matching file
+// Fallback for SPA/HTML routes: serve React index from dist or public
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({
       success: false,
       message: `API route not found: ${req.method} ${req.originalUrl}`
     });
+  }
+  const distIndex = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(distIndex)) {
+    return res.sendFile(distIndex);
   }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

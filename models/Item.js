@@ -54,6 +54,10 @@ const itemSchema = new mongoose.Schema({
     },
     default: 'Open'
   },
+  image_url: {
+    type: String,
+    default: ''
+  },
   creator_id: {
     type: String,
     default: 'guest-user'
@@ -61,6 +65,10 @@ const itemSchema = new mongoose.Schema({
   creator_name: {
     type: String,
     default: 'Anonymous Student'
+  },
+  creator_username: {
+    type: String,
+    default: 'student'
   },
   created_at: {
     type: Date,
@@ -90,6 +98,7 @@ const ensureDataFile = () => {
         location: 'Lecture Theatre B',
         contact_info: 'tunde.sample@campus.edu',
         status: 'Open',
+        image_url: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80',
         creator_id: 'user-tunde',
         creator_name: 'Tunde Adebayo',
         creator_username: 'tunde',
@@ -104,6 +113,7 @@ const ensureDataFile = () => {
         location: 'Science Library, 1st Floor',
         contact_info: 'admin.security@campus.edu',
         status: 'Open',
+        image_url: 'https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?auto=format&fit=crop&w=800&q=80',
         creator_id: 'user-admin',
         creator_name: 'Campus Security Desk',
         creator_username: 'admin',
@@ -118,6 +128,7 @@ const ensureDataFile = () => {
         location: 'Campus Cafeteria walkway',
         contact_info: 'chioma.sample@campus.edu',
         status: 'Returned',
+        image_url: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=800&q=80',
         creator_id: 'user-chioma',
         creator_name: 'Chioma Okeke',
         creator_username: 'chioma',
@@ -210,8 +221,10 @@ const ItemRepository = {
       location: data.location.trim(),
       contact_info: data.contact_info.trim(),
       status: data.status || 'Open',
+      image_url: data.image_url || '',
       creator_id: data.creator_id || 'guest-student',
       creator_name: data.creator_name || 'Campus Student',
+      creator_username: data.creator_username || 'student',
       created_at: new Date().toISOString()
     };
     items.unshift(newItem);

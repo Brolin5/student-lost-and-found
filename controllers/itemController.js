@@ -86,7 +86,7 @@ exports.getItemById = async (req, res) => {
  */
 exports.createItem = async (req, res) => {
   try {
-    const { title, description, post_type, category, location, contact_info, status, creator_id, creator_name } = req.body;
+    const { title, description, post_type, category, location, contact_info, status, image_url, creator_id, creator_name } = req.body;
 
     // --- Strict Field Validation ---
     const errors = [];
@@ -113,6 +113,7 @@ exports.createItem = async (req, res) => {
     const effectiveCreatorId = req.user?.id || creator_id || req.headers['x-user-id'] || 'student-guest';
     const effectiveCreatorName = req.user?.name || creator_name || req.headers['x-user-name'] || 'Campus Student';
     const effectiveUsername = req.user?.username || 'student';
+    const effectiveImageUrl = req.file ? `/uploads/${req.file.filename}` : (image_url || '');
 
     const newItem = await Item.create({
       title: title.trim(),
@@ -122,6 +123,7 @@ exports.createItem = async (req, res) => {
       location: location.trim(),
       contact_info: contact_info.trim(),
       status: status && ['Open', 'Claimed', 'Returned'].includes(status) ? status : 'Open',
+      image_url: effectiveImageUrl,
       creator_id: effectiveCreatorId,
       creator_name: effectiveCreatorName,
       creator_username: effectiveUsername
@@ -227,6 +229,13 @@ exports.updateItem = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Status must be "Open", "Claimed", or "Returned"' });
       }
       updateData.status = status;
+    }
+
+    if (req.body.image_url !== undefined) {
+      updateData.image_url = req.body.image_url;
+    }
+    if (req.file) {
+      updateData.image_url = `/uploads/${req.file.filename}`;
     }
 
     const updatedItem = await Item.findByIdAndUpdate(id, updateData);

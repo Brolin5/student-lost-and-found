@@ -35,15 +35,19 @@ Below are the key prompts and discussions used during the project lifecycle:
 > *"Create a single-page frontend using HTML5, Tailwind CSS, and vanilla JavaScript. Include quick analytics cards, filter tabs for Lost vs Found, search bar, item cards with badges, Create/Edit modals, delete confirmation modal, and auto-dismissing toast notifications."*
 * **What it produced:** `public/index.html`, `public/css/style.css`, `public/js/api.js`, and `public/js/app.js`.
 
+### Prompt 5: Kuda Bank UI Redesign & Modern Framework Migration
+> *"Redesign the platform to a professional level inspired by Kuda Bank's obsidian mobile app UI (dark mode, purple accents, quick actions grid, hero metrics, mobile bottom navigation). Upgrade to modern React 19 + Vite and implement drag-and-drop Image Upload with live preview, server-side Multer handling, and full-screen image lightbox."*
+* **What it produced:** Full React component architecture (`src/App.jsx`, `src/main.jsx`, `src/index.css`), Vite build configuration (`vite.config.mjs`), Multer upload pipeline in `routes/itemRoutes.js`, and updated test suite (43 assertions).
+
 ---
 
 ## 3. Features or Code Generated with AI
 
 1. **Initial Project Scaffolding:** `package.json`, environment variable management (`dotenv`), and directory structuring.
-2. **Data Model & Schema:** Mongoose schema definition with validation rules and enum constraints (`Lost` | `Found`, `Open` | `Claimed` | `Returned`).
-3. **API Routing & Handlers:** Controller functions implementing the 4 compulsory CRUD operations, search queries (`$regex`), and aggregate count calculations for the dashboard.
-4. **Client Interface:** Responsive modal layouts, Tailwind styling, badge classes, and DOM manipulation for dynamic card updates.
-5. **Automated Test Suite:** Multi-suite test runner testing API endpoints and HTTP error codes.
+2. **Data Model & Schema:** Mongoose schema definition with validation rules and enum constraints (`Lost` | `Found`, `Open` | `Claimed` | `Returned`, `image_url`).
+3. **API Routing & Handlers:** Controller functions implementing the 4 compulsory CRUD operations, search queries (`$regex`), Multer image upload endpoint, and aggregate count calculations for the dashboard.
+4. **React Client Interface:** Kuda-inspired dark mode UI with interactive cards, drag-and-drop photo uploader, full-screen lightbox, mobile bottom navigation, and JWT auth modals.
+5. **Automated Test Suite:** 43 automated integration tests verifying API endpoints, authentication, CRUD, and image upload validation.
 
 ---
 

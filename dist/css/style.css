@@ -1,0 +1,206 @@
+/* Custom Polishing & Animations for Student Lost & Found Platform */
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --lost-color: #ef4444;
+  --found-color: #10b981;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+/* Modal Backdrops & Animation */
+.modal-backdrop {
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.25s ease-in-out;
+}
+
+.modal-content {
+  transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.modal-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-hidden .modal-content {
+  transform: scale(0.95) translateY(10px);
+}
+
+.modal-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-visible .modal-content {
+  transform: scale(1) translateY(0);
+}
+
+/* Modal Form Scrollable Area */
+.modal-scrollable-form {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 24rem;
+  width: calc(100% - 3rem);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.125rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.toast-error {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.toast-info {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+/* Card hover animation */
+.item-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  }
+}
+
+/* Badge Glow effects */
+.badge-lost {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.badge-found {
+  background-color: #d1fae5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+.status-open {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-claimed {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.status-returned {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+/* Loading skeleton pulse */
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.skeleton {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  background-color: #e2e8f0;
+}
+
+/* ==================================================== */
+/* Mobile Screen Optimizations (Mobile First Polish)    */
+/* ==================================================== */
+@media (max-width: 640px) {
+  /* Prevent iOS / Chrome automatic form input zoom on focus */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .modal-backdrop {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-height: 94vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    width: 100%;
+  }
+
+  #toast-container {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+    max-width: none;
+  }
+
+  .toast {
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+  }
+}

@@ -281,6 +281,17 @@ async function runTests() {
     const notFoundRes = await fetch(`${baseUrl}/api/items/non-existent-random-id-9999`);
     assert(notFoundRes.status === 404, 'Returns 404 for non-existent item ID');
 
+    // ----------------------------------------------------
+    // TEST 13: Image Upload Handling
+    // ----------------------------------------------------
+    console.log('\n--- Suite 13: Image Upload Validation ---');
+    const emptyUploadRes = await fetch(`${baseUrl}/api/upload`, {
+      method: 'POST'
+    });
+    assert(emptyUploadRes.status === 400, 'Upload rejects empty file submission with HTTP 400');
+    const emptyUploadData = await emptyUploadRes.json();
+    assert(emptyUploadData.success === false, 'Upload reports failure for empty request');
+
     console.log('\n==================================================');
     console.log(` ✅ ALL TESTS PASSED: ${passed} passed, ${failed} failed.`);
     console.log('==================================================\n');

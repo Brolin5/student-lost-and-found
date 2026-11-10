@@ -1,50 +1,53 @@
-# 🎓 Student Lost-and-Found Platform
+# 🎓 Kuda Campus | Student Lost & Found Platform
 
-> **A Full-Stack Campus Web Application for Reporting, Browsing, and Reuniting Misplaced Belongings.**  
+> **A Professional-Grade Full-Stack React & Node.js Application Inspired by Kuda Bank's Signature Obsidian UI.**  
 > Built for the **Collective Labs | Builders Group (CLBG) Software Development Track End-of-Bootcamp Assessment**.
 
 ![Project Status](https://img.shields.io/badge/Status-Completed-success?style=flat-square)
-![Tests](https://img.shields.io/badge/Tests-41%20Passing-brightgreen?style=flat-square)
-![Architecture](https://img.shields.io/badge/Architecture-Full--Stack%20MVC-blue?style=flat-square)
+![Tests](https://img.shields.io/badge/Tests-43%20Passing-brightgreen?style=flat-square)
+![Frontend](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite%20%7C%20Tailwind%20CSS-6825DF?style=flat-square)
+![Backend](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express%20%7C%20Multer-black?style=flat-square)
 ![License](https://img.shields.io/badge/License-ISC-lightgrey?style=flat-square)
 
 ---
 
 ## 📌 1. Project Overview
 
-The **Student Lost-and-Found Platform** is a centralized, responsive web application designed for campus communities. Misplaced items—such as student ID cards, textbooks, water bottles, and electronics—are often lost in lecture halls, libraries, and hostels without a single reliable matching system.
+The **Kuda Campus Lost-and-Found Platform** is a modern, high-performance web application designed for university communities, taking design inspiration from **Kuda Bank's** sleek obsidian mobile interface. Misplaced items—such as student ID cards, textbooks, water bottles, and electronics—are often lost in lecture halls, libraries, and hostels without a single reliable matching system.
 
 This platform bridges that gap by allowing students to:
-- Post **Lost Items** with location and identifying details.
-- Post **Found Items** discovered across campus facilities.
-- Filter, search, and browse active notices in real time.
+- Post **Lost Items** with photos, locations, and identifying details.
+- Post **Found Items** discovered across campus facilities with drag-and-drop photo upload.
+- Browse photos in a full-screen **Image Lightbox**.
+- Filter, search, and browse active notices in real time with quick action cards.
 - Update item lifecycle statuses (`Open` $\rightarrow$ `Claimed` $\rightarrow$ `Returned`).
-- Remove obsolete or duplicate reports once resolved.
+- Remove obsolete or duplicate reports once resolved with strict ownership authorization.
 
 ---
 
 ## 🎯 2. Problem Statement & Solution
 
 * **The Problem:** Campus bulletin boards and fragmented WhatsApp groups lead to missed notices, duplicated inquiries, and lost belongings never reaching their rightful owners.
-* **The Solution:** A dedicated full-stack web application providing transparent tracking, structured categorization, instant search, and real-time status progression from loss to reunion.
+* **The Solution:** An ultra-responsive full-stack web application with high-definition image uploads, transparent tracking, structured categorization, instant search, and real-time status progression.
 
 ---
 
-## ⚡ 3. Key Features (Full CRUD + Authentication)
+## ⚡ 3. Key Features (Full CRUD + Authentication + Image Upload)
 
 | Operation | Action | Feature Description |
 |---|---|---|
 | **Auth** | Sign Up & Sign In | Secure JWT authentication with hashed passwords (`bcryptjs`). Pre-seeded with student accounts (`tunde`, `chioma`) and campus admin (`admin`). |
-| **Create** | Report Item | Interactive modal to report Lost or Found items. Automatically bound to the authenticated student account. |
-| **Read** | Browse & Search | Responsive grid displaying active cards, real-time analytics counter, and multi-field keyword search. |
-| **Update** | Edit & Status Change | Edit existing item details or quickly transition item status between `Open`, `Claimed`, and `Returned`. Protected by post ownership (only creator or admin). |
+| **Create** | Report Item + Upload Photo | Modal to report Lost or Found items with drag-and-drop **Image Upload** (PNG, JPG, WebP), live preview, and automatic file compression. |
+| **Read** | Browse, Search & Lightbox | Kuda-style obsidian feed displaying card thumbnails, full-screen **Photo Lightbox**, real-time analytics counter, and multi-field keyword search. |
+| **Update** | Edit, Change Photo & Status | Edit item details, change photos, or quickly transition item status between `Open`, `Claimed`, and `Returned`. Protected by post ownership (only creator or admin). |
 | **Delete** | Remove Item | Safe deletion flow with confirmation modal. Protected by post ownership (only creator or admin). |
 
 ### Additional Highlights
+* **Kuda Bank Design Language**: Obsidian dark mode palette (`#0B0914`), Kuda royal purple accents (`#6825DF`), lilac alert banners, metric balance cards, and mobile bottom navigation.
+* **Image Upload Pipeline**: Built with `Multer` on the backend and HTML5 drag-and-drop on the frontend, saving to `/uploads` with generous 25MB body limit support.
+* **Modern React 19 Stack**: Built using Vite, Tailwind CSS, and Lucide React icons, compiling to static assets in milliseconds.
 * **Resilient Database Layer**: Seamlessly connects to **MongoDB Atlas** in production and falls back to a persistent JSON store for local offline testing.
-* **Input Validation & Error Handling**: Server-side and client-side validation ensuring no empty fields, clean status transitions, and friendly toast alerts.
-* **Mobile-First Responsive Layout**: Built with Tailwind CSS, tested across desktop, tablet, and mobile viewpoints.
-* **Automated Test Suite**: 29 automated tests verifying health, edge cases, input validation, and all CRUD operations.
+* **Automated Test Suite**: 43 automated tests verifying health, edge cases, input validation, image upload, and all CRUD operations.
 
 ---
 
