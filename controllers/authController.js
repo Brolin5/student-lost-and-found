@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { User } = require('../models/User');
 const { signToken } = require('../middleware/auth');
+const { AuditLog } = require('../models/AuditLog');
 
 /**
  * @desc    Register a new student account
@@ -50,6 +51,19 @@ exports.register = async (req, res) => {
 
     const token = signToken(newUser);
 
+    // Log registration audit event
+    await AuditLog.create({
+      action: 'AUTH_REGISTER',
+      actor_id: newUser._id || newUser.id,
+      actor_username: newUser.username,
+      actor_role: newUser.role,
+      target_type: 'user',
+      target_id: newUser._id || newUser.id,
+      details: `New student registration completed for ${newUser.name} (@${newUser.username})`,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+      severity: 'info'
+    });
+
     res.status(201).json({
       success: true,
       message: 'Account created successfully!',
@@ -91,6 +105,18 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ username: cleanUsername });
 
     if (!user) {
+      await AuditLog.create({
+        action: 'ACCESS_DENIED',
+        actor_id: 'unknown',
+        actor_username: cleanUsername,
+        actor_role: 'guest',
+        target_type: 'auth',
+        target_id: cleanUsername,
+        details: `Failed sign-in attempt: username "${cleanUsername}" does not exist`,
+        ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+        severity: 'warning'
+      });
+
       return res.status(401).json({
         success: false,
         message: 'Invalid username or password'
@@ -99,6 +125,18 @@ exports.login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      await AuditLog.create({
+        action: 'ACCESS_DENIED',
+        actor_id: user._id || user.id,
+        actor_username: user.username,
+        actor_role: user.role,
+        target_type: 'auth',
+        target_id: user.username,
+        details: `Failed sign-in attempt: incorrect password supplied for @${user.username}`,
+        ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+        severity: 'warning'
+      });
+
       return res.status(401).json({
         success: false,
         message: 'Invalid username or password'
@@ -106,6 +144,19 @@ exports.login = async (req, res) => {
     }
 
     const token = signToken(user);
+
+    // Audit successful login
+    await AuditLog.create({
+      action: 'AUTH_LOGIN',
+      actor_id: user._id || user.id,
+      actor_username: user.username,
+      actor_role: user.role,
+      target_type: 'auth',
+      target_id: user.username,
+      details: `Student @${user.username} authenticated successfully via web portal`,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+      severity: 'info'
+    });
 
     res.status(200).json({
       success: true,

@@ -292,6 +292,98 @@ async function runTests() {
     const emptyUploadData = await emptyUploadRes.json();
     assert(emptyUploadData.success === false, 'Upload reports failure for empty request');
 
+    // ----------------------------------------------------
+    // TEST 14: Audit Trail Logging & Verification
+    // ----------------------------------------------------
+    console.log('\n--- Suite 14: Audit Trail Logging & Access Control ---');
+    // Unauthenticated rejection
+    const unauthAuditRes = await fetch(`${baseUrl}/api/audit-logs`);
+    assert(unauthAuditRes.status === 401, 'Rejects unauthenticated access to audit logs with HTTP 401');
+
+    // Authenticated retrieval
+    const authAuditRes = await fetch(`${baseUrl}/api/audit-logs`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const authAuditData = await authAuditRes.json();
+    assert(authAuditRes.status === 200, 'Authenticated user retrieves audit logs with HTTP 200');
+    assert(authAuditData.success === true, 'Audit log response contains success: true');
+    assert(Array.isArray(authAuditData.data), 'Audit logs returned in an array');
+    assert(authAuditData.data.some(l => l.action === 'AUTH_LOGIN'), 'Audit trail recorded student login event');
+    assert(authAuditData.data.some(l => l.action === 'ACCESS_DENIED'), 'Audit trail recorded unauthorized access denial event');
+
+    // ----------------------------------------------------
+    // TEST 15: Claim Verification Flow & Privacy Protection
+    // ----------------------------------------------------
+    console.log('\n--- Suite 15: Claim Verification Flow & Privacy ---');
+    // Create a new item to claim
+    const itemToClaimRes = await fetch(`${baseUrl}/api/items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        title: 'Casio FX-991EX Calculator',
+        description: 'Black scientific calculator left in Lecture Theatre 1',
+        post_type: 'Found',
+        category: 'Electronics',
+        location: 'Lecture Theatre 1',
+        contact_info: 'finder@nileuniversity.edu.ng',
+        status: 'Open'
+      })
+    });
+    const itemToClaimData = await itemToClaimRes.json();
+    const claimTargetId = itemToClaimData.data._id || itemToClaimData.data.id;
+
+    // Submit a claim with verification answer from other user
+    const submitClaimRes = await fetch(`${baseUrl}/api/claims`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${otherToken}`
+      },
+      body: JSON.stringify({
+        item_id: claimTargetId,
+        verification_answer: 'My name initials are scratched on the back cover',
+        claimant_contact: 'other@nileuniversity.edu.ng'
+      })
+    });
+    const submitClaimData = await submitClaimRes.json();
+    assert(submitClaimRes.status === 201, 'Submits claim with secret verification answer (HTTP 201)');
+    assert(submitClaimData.success === true, 'Claim response contains success: true');
+    const claimId = submitClaimData.data.id;
+
+    // Owner views received claims on their item
+    const getClaimsRes = await fetch(`${baseUrl}/api/claims/item/${claimTargetId}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const getClaimsData = await getClaimsRes.json();
+    assert(getClaimsRes.status === 200, 'Post owner can view claims on their item with HTTP 200');
+    assert(getClaimsData.data.some(c => c.id === claimId), 'Claim is present in received claims');
+
+    // Approve the claim
+    const approveRes = await fetch(`${baseUrl}/api/claims/${claimId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ status: 'Approved' })
+    });
+    const approveData = await approveRes.json();
+    assert(approveRes.status === 200, 'Owner approves claim with HTTP 200');
+    assert(approveData.data.status === 'Approved', 'Claim status updated to Approved');
+
+    // ----------------------------------------------------
+    // TEST 16: Smart Matching Engine
+    // ----------------------------------------------------
+    console.log('\n--- Suite 16: Smart Matching Engine ---');
+    const matchRes = await fetch(`${baseUrl}/api/items/${claimTargetId}/matches`);
+    const matchData = await matchRes.json();
+    assert(matchRes.status === 200, 'Match endpoint responds with HTTP 200');
+    assert(matchData.success === true, 'Smart matcher returns success: true');
+    assert(Array.isArray(matchData.data), 'Returns matches array with similarity scores');
+
     console.log('\n==================================================');
     console.log(` ✅ ALL TESTS PASSED: ${passed} passed, ${failed} failed.`);
     console.log('==================================================\n');

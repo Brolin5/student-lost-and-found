@@ -1,0 +1,38 @@
+[
+  {
+    "id": "claim-1794325886156-30330",
+    "item_id": "item_mwavaymerqw3i",
+    "item_title": "Casio FX-991EX Calculator",
+    "claimant_id": "usr_mwavayllxsvr",
+    "claimant_name": "Other Student",
+    "claimant_username": "otherstudent_mwavayij",
+    "claimant_contact": "other@nileuniversity.edu.ng",
+    "verification_answer": "My name initials are scratched on the back cover",
+    "status": "Approved",
+    "created_at": "2026-11-10T15:51:26.156Z"
+  },
+  {
+    "id": "claim-1794325436834-75034",
+    "item_id": "item_mwav1bx58dgmq",
+    "item_title": "Casio FX-991EX Calculator",
+    "claimant_id": "usr_mwav1bw9pewn",
+    "claimant_name": "Other Student",
+    "claimant_username": "otherstudent_mwav1btd",
+    "claimant_contact": "other@nileuniversity.edu.ng",
+    "verification_answer": "My name initials are scratched on the back cover",
+    "status": "Approved",
+    "created_at": "2026-11-10T15:43:56.834Z"
+  },
+  {
+    "id": "claim-seed-001",
+    "item_id": "seed-item-001",
+    "item_title": "Casio Scientific Calculator fx-991EX",
+    "claimant_id": "seed-chioma-002",
+    "claimant_name": "Chioma Okonkwo",
+    "claimant_username": "chioma",
+    "claimant_contact": "chioma@nileuniversity.edu.ng",
+    "verification_answer": "It has my name initial 'C.O.' etched inside the battery cover and a scratch near the solar cell.",
+    "status": "Pending",
+    "created_at": "2026-11-10T14:45:00.000Z"
+  }
+]

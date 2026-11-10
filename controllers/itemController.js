@@ -1,4 +1,6 @@
 const { Item } = require('../models/Item');
+const { AuditLog } = require('../models/AuditLog');
+const { findMatches } = require('../services/smartMatcher');
 
 /**
  * @desc    Get all items with optional filtering and search
@@ -129,6 +131,19 @@ exports.createItem = async (req, res) => {
       creator_username: effectiveUsername
     });
 
+    // Audit Logging
+    await AuditLog.create({
+      action: 'ITEM_CREATED',
+      actor_id: effectiveCreatorId,
+      actor_username: effectiveUsername,
+      actor_role: req.user?.role || 'student',
+      target_type: 'item',
+      target_id: newItem._id || newItem.id,
+      details: `Student @${effectiveUsername} reported ${post_type} item "${newItem.title}" at ${newItem.location}`,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+      severity: 'info'
+    });
+
     res.status(201).json({
       success: true,
       message: `${post_type} item reported successfully!`,
@@ -172,6 +187,18 @@ exports.updateItem = async (req, res) => {
       (existing.creator_username && username && existing.creator_username.toLowerCase() === username.toLowerCase());
 
     if (!isAuthorized) {
+      await AuditLog.create({
+        action: 'ACCESS_DENIED',
+        actor_id: userId || 'unknown',
+        actor_username: username || 'guest',
+        actor_role: userRole || 'student',
+        target_type: 'item',
+        target_id: id,
+        details: `Access Denied: @${username || 'anonymous'} attempted unauthorized modification of post "${existing.title}"`,
+        ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+        severity: 'warning'
+      });
+
       return res.status(403).json({
         success: false,
         message: 'Permission denied: Only the student who created this post or a campus administrator can edit it.'
@@ -240,6 +267,22 @@ exports.updateItem = async (req, res) => {
 
     const updatedItem = await Item.findByIdAndUpdate(id, updateData);
 
+    // Log Update / Status Change to Audit Trail
+    const isStatusOnly = Object.keys(updateData).length === 1 && updateData.status !== undefined;
+    await AuditLog.create({
+      action: isStatusOnly ? 'STATUS_CHANGED' : 'ITEM_UPDATED',
+      actor_id: userId || 'student',
+      actor_username: username || 'student',
+      actor_role: userRole || 'student',
+      target_type: 'item',
+      target_id: id,
+      details: isStatusOnly
+        ? `Status of "${updatedItem.title}" updated to ${updatedItem.status} by @${username || 'user'}`
+        : `Item "${updatedItem.title}" details updated by @${username || 'user'}`,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+      severity: 'info'
+    });
+
     res.status(200).json({
       success: true,
       message: 'Item updated successfully',
@@ -283,6 +326,18 @@ exports.deleteItem = async (req, res) => {
       (existing.creator_username && username && existing.creator_username.toLowerCase() === username.toLowerCase());
 
     if (!isAuthorized) {
+      await AuditLog.create({
+        action: 'ACCESS_DENIED',
+        actor_id: userId || 'unknown',
+        actor_username: username || 'guest',
+        actor_role: userRole || 'student',
+        target_type: 'item',
+        target_id: id,
+        details: `Access Denied: unauthorized deletion attempt on "${existing.title}" by @${username || 'anonymous'}`,
+        ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+        severity: 'critical'
+      });
+
       return res.status(403).json({
         success: false,
         message: 'Permission denied: Only the student who created this post or a campus administrator can delete it.'
@@ -290,6 +345,19 @@ exports.deleteItem = async (req, res) => {
     }
 
     await Item.findByIdAndDelete(id);
+
+    // Audit Log Deletion
+    await AuditLog.create({
+      action: 'ITEM_DELETED',
+      actor_id: userId || 'user',
+      actor_username: username || 'user',
+      actor_role: userRole || 'student',
+      target_type: 'item',
+      target_id: id,
+      details: `Post "${existing.title}" was permanently removed by @${username || 'user'}`,
+      ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+      severity: 'info'
+    });
 
     res.status(200).json({
       success: true,
@@ -301,6 +369,38 @@ exports.deleteItem = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete item',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Find smart matches for a given item (Lost <-> Found)
+ * @route   GET /api/items/:id/matches
+ * @access  Public / Optional Auth
+ */
+exports.getItemMatches = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const targetItem = await Item.findById(id);
+
+    if (!targetItem) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+
+    const allItems = await Item.find({});
+    const matches = findMatches(targetItem, allItems, 35);
+
+    res.status(200).json({
+      success: true,
+      count: matches.length,
+      data: matches
+    });
+  } catch (error) {
+    console.error('Error finding matches:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to find smart matches',
       error: error.message
     });
   }

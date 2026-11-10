@@ -1,78 +1,213 @@
-/* Custom Kuda Styles */
+/* Nile University Theme & Charles-style Motion Blur Design */
+/* Engineered according to "20 Ways to Make Beautiful AI Animations" & "20 AI Design Trends" */
 
-/* Toast container positioning */
-.toast-slide-in {
-  animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes toastIn {
-  from {
+/* 1. Ease-out for entrances & 10. Start popovers at 0.95 with velocity motion blur */
+@keyframes motionBlurIn {
+  0% {
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(16px) scale(0.97);
+    filter: blur(6px);
   }
-  to {
+  60% {
+    filter: blur(1.5px);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+    filter: blur(0px);
   }
 }
 
-/* Modal animation */
-.modal-fade-in {
-  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes modalIn {
-  from {
+@keyframes motionBlurDialog {
+  0% {
     opacity: 0;
-    transform: scale(0.96) translateY(12px);
+    transform: translateY(22px) scale(0.95);
+    filter: blur(8px);
   }
-  to {
+  60% {
+    filter: blur(2px);
+  }
+  100% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
   }
 }
 
-/* Bottom sheet animation on mobile */
-@media (max-width: 640px) {
-  .mobile-bottom-sheet {
-    animation: sheetUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-}
-
-@keyframes sheetUp {
-  from {
+@keyframes motionBlurSide {
+  0% {
     opacity: 0;
-    transform: translateY(100%);
+    transform: translateX(16px) scale(0.98);
+    filter: blur(5px);
   }
-  to {
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0) scale(1);
+    filter: blur(0px);
   }
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(25, 22, 43, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* 8. Pulse to confirm success */
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5);
+  }
+  40% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(5, 150, 105, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
 }
 
-.glass-nav {
-  background: rgba(11, 9, 20, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(42, 36, 71, 0.6);
+/* 18. Crossfade icons + blur */
+@keyframes crossfadeBlur {
+  0% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
 }
 
-/* Skeleton Loading Shimmer */
+/* 15. Toast entrance (shorter exit) */
+@keyframes toastSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.95);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Reusable Animation Classes */
+.animate-motion-blur {
+  animation: motionBlurIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, filter, opacity;
+}
+
+.animate-motion-blur-dialog {
+  animation: motionBlurDialog 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, filter, opacity;
+}
+
+.animate-motion-blur-side {
+  animation: motionBlurSide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, filter, opacity;
+}
+
+.animate-crossfade {
+  animation: crossfadeBlur 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-success-pulse {
+  animation: successPulse 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-slide-in {
+  animation: toastSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, filter, opacity;
+}
+
+/* 3. Stagger list rows by 30ms */
+.stagger-item {
+  animation: motionBlurIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Background Pattern (#18: Subtle Square-Dot Grid in Nile Navy tint) */
+.bg-nile-dots {
+  background-color: #F8FAFC;
+  background-image: radial-gradient(rgba(15, 44, 89, 0.08) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+/* 4. Scale to 0.97 on press & 13. No bounce on everyday UI */
+.btn-spring {
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease,
+              box-shadow 0.15s ease,
+              opacity 0.15s ease;
+  will-change: transform;
+}
+
+.btn-spring:active {
+  transform: scale(0.97);
+}
+
+/* Interactive Card Physics (14. Radius harmony + Smooth Damped Spring) */
+.card-hover-spring {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.15s ease;
+  will-change: transform;
+}
+
+.card-hover-spring:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -6px rgba(15, 44, 89, 0.08), 0 6px 12px -4px rgba(15, 44, 89, 0.03);
+}
+
+.card-hover-spring:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+/* 2. Dropdowns at 150-250ms (Rule 2 from 20 Beautiful Animations) */
+.dropdown-smooth {
+  transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Custom Dropdown Animation & Popover Start at 0.95 (Rule 10) */
+@keyframes dropdownEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+.animate-dropdown-in {
+  animation: dropdownEnter 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity, filter;
+}
+
+/* Marcelo Design X Dark Hero Gradient & Spacing Tokens */
+.hero-nile-gradient {
+  background: linear-gradient(180deg, #1E4FA3 0%, #16397A 65%, #10285A 100%);
+}
+
+.sheet-overlap-top {
+  border-radius: 28px 28px 0 0;
+}
+
+.floating-pill-nav {
+  box-shadow: 0 8px 32px rgba(16, 40, 90, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Clean Skeleton Loading */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, #19162B 25%, #2A2447 50%, #19162B 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite;
+  background: #F1F5F9;
+  animation: pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
 }

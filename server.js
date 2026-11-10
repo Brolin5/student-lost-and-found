@@ -35,6 +35,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/claims', require('./routes/claimRoutes'));
+app.use('/api/audit-logs', require('./routes/auditRoutes'));
 app.use('/api/upload', (req, res, next) => {
   req.url = '/upload';
   itemRoutes(req, res, next);

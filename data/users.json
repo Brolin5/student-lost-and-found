@@ -22,5 +22,53 @@
     "password": "$2b$10$lRR3wrjcHZDS9WJzfyolY.jpWumuoBOdP5DS/coKOJ47cZDzkI6Xq",
     "role": "admin",
     "created_at": "2026-11-03T10:40:15.473Z"
+  },
+  {
+    "_id": "usr_mwav02z63wov",
+    "username": "teststudent_mwav02us",
+    "name": "Test Student User",
+    "password": "$2b$10$rezI68AGQTC3NTl3wBtYZ.19y6GATv69VZHMIleQBc2rzYTUd9ORq",
+    "role": "student",
+    "created_at": "2026-11-10T15:42:58.578Z"
+  },
+  {
+    "_id": "usr_mwav039ppt9w",
+    "username": "otherstudent_mwav036o",
+    "name": "Other Student",
+    "password": "$2b$10$rVp6UvzBVTPFGyJNY5j3sedhpkfAwp8QNngHsUgPFIx/ksn4frw8W",
+    "role": "student",
+    "created_at": "2026-11-10T15:42:58.957Z"
+  },
+  {
+    "_id": "usr_mwav1bjp8dlw",
+    "username": "teststudent_mwav1bfj",
+    "name": "Test Student User",
+    "password": "$2b$10$AuELBDKNKRf5pAp2QzZaReRmhrX6r11pDigBkwWc2j25b5fL9ssAS",
+    "role": "student",
+    "created_at": "2026-11-10T15:43:56.341Z"
+  },
+  {
+    "_id": "usr_mwav1bw9pewn",
+    "username": "otherstudent_mwav1btd",
+    "name": "Other Student",
+    "password": "$2b$10$0HwnaWlrHHodd8LFPw.DsOKW4PcBfHZ36hoBntVTov6wPmYqu7LZy",
+    "role": "student",
+    "created_at": "2026-11-10T15:43:56.793Z"
+  },
+  {
+    "_id": "usr_mwavayaxrxil",
+    "username": "teststudent_mwavay6z",
+    "name": "Test Student User",
+    "password": "$2b$10$RwX9HLqVgBrDW3mEHNWMP.Puv6rF7EhlaVgOvaJXnB1eRyyaL441m",
+    "role": "student",
+    "created_at": "2026-11-10T15:51:25.737Z"
+  },
+  {
+    "_id": "usr_mwavayllxsvr",
+    "username": "otherstudent_mwavayij",
+    "name": "Other Student",
+    "password": "$2b$10$R91OH5fRV7KH1ft8EYSAlu.eEFdsPfbdHTOKGgujZ8VA92wvMpzR2",
+    "role": "student",
+    "created_at": "2026-11-10T15:51:26.121Z"
   }
 ]
