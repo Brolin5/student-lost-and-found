@@ -90,8 +90,8 @@ const TOUR_STEPS = [
   },
   {
     target: '[data-tour="bottom-dock"]',
-    title: 'Tactile Campus Navigation Dock',
-    description: 'Switch between Home, Matches, Claims, and Browse, or tap the center + button to post an item from anywhere.'
+    title: 'Campus Navigation Dock',
+    description: 'Switch between Home, Matches, Claims, and Profile, or tap the center + button to post an item from anywhere.'
   }
 ];
 
@@ -1283,15 +1283,19 @@ export default function App() {
               )}
             </div>
 
-            {/* Clean Student Pill (No green stuff!) */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#EEF2F9] rounded-full px-3 py-1 border border-[#E5E9F2]">
+            {/* Clean Student Pill (Clickable to open Profile) */}
+            <button
+              type="button"
+              onClick={() => setActiveTab('profile')}
+              className="hidden sm:flex items-center gap-2 bg-[#EEF2F9] hover:bg-[#E2E8F0]/70 rounded-full px-3 py-1 transition-colors cursor-pointer"
+            >
               <span className="text-[11px] font-bold text-[#1E4FA3] tabular-nums">
                 @{currentUser.username}
               </span>
-              <span className="text-[9px] uppercase font-bold text-[#6B7280] bg-white px-2 py-0.5 rounded-full border border-[#E5E9F2] shadow-2xs">
+              <span className="text-[9px] uppercase font-bold text-[#6B7280] bg-white px-2 py-0.5 rounded-full shadow-2xs">
                 {currentUser.role}
               </span>
-            </div>
+            </button>
 
             {/* Sign Out with Confirmation Modal Trigger */}
             <button
@@ -1992,11 +1996,218 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
+      {/* 2.55 STUDENT / ADMIN PROFILE SCREEN                  */}
+      {/* ---------------------------------------------------- */}
+      {activeTab === 'profile' && (() => {
+        const myPosts = items.filter(
+          item =>
+            (item.creator_id && item.creator_id === currentUser.id) ||
+            (item.creator_username && item.creator_username.toLowerCase() === currentUser.username.toLowerCase())
+        );
+        const resolvedCount = myPosts.filter(i => i.status === 'Claimed' || i.status === 'Returned').length;
+        const initials = (currentUser.name || currentUser.username || 'NU')
+          .split(' ')
+          .map(part => part[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase();
+
+        return (
+          <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-24 space-y-5 animate-motion-blur">
+            {/* Profile Hero Card */}
+            <div className="bg-white rounded-2xl border border-[#E5E9F2] p-5 shadow-nile-card space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-14 h-14 rounded-2xl bg-[#1E4FA3] text-white font-heading font-extrabold text-lg flex items-center justify-center shrink-0 shadow-xs">
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="font-heading font-bold text-base sm:text-lg text-[#1F2328] truncate">
+                        {currentUser.name || currentUser.username}
+                      </h2>
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#EEF2F9] text-[#1E4FA3] text-[10px] font-bold capitalize">
+                        {currentUser.role}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#6B7280] font-medium truncate mt-0.5">
+                      @{currentUser.username} · Nile University of Nigeria
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSignOutConfirmOpen(true)}
+                  className="px-3 py-2 rounded-xl bg-[#F8FAFC] hover:bg-rose-50 text-xs font-semibold text-[#64748B] hover:text-[#F25C54] border border-[#E5E9F2] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
+              </div>
+
+              {/* 3 Compact Activity Counters */}
+              <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-[#F1F5F9]">
+                <div className="p-3 rounded-xl bg-[#F8FAFC] text-center">
+                  <span className="font-heading font-extrabold text-lg text-[#1E4FA3] tabular-nums block">
+                    {myPosts.length}
+                  </span>
+                  <span className="text-[11px] font-medium text-[#6B7280]">My Posts</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F8FAFC] text-center">
+                  <span className="font-heading font-extrabold text-lg text-[#1E4FA3] tabular-nums block">
+                    {claims.length}
+                  </span>
+                  <span className="text-[11px] font-medium text-[#6B7280]">Claims</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F8FAFC] text-center">
+                  <span className="font-heading font-extrabold text-lg text-[#1E4FA3] tabular-nums block">
+                    {resolvedCount}
+                  </span>
+                  <span className="text-[11px] font-medium text-[#6B7280]">Resolved</span>
+                </div>
+              </div>
+
+              {/* Quick Profile Actions */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsPostChooserOpen(true)}
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-heading font-bold flex items-center justify-center gap-1.5 btn-spring cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>New Report</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={startProductTour}
+                  className="py-2.5 px-3.5 rounded-xl bg-[#EEF2F9] hover:bg-[#E2E8F0]/70 text-[#1E4FA3] text-xs font-semibold flex items-center justify-center gap-1.5 btn-spring cursor-pointer"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>App Guide</span>
+                </button>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('audit')}
+                    className="py-2.5 px-3.5 rounded-xl bg-[#EEF2F9] hover:bg-[#E2E8F0]/70 text-[#1E4FA3] text-xs font-semibold flex items-center justify-center gap-1.5 btn-spring cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Audit Trail</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* User's Own Posts Management Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading font-bold text-sm text-[#1F2328]">
+                  My Reported Items ({myPosts.length})
+                </h3>
+                {myPosts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMyItemsOnly(true);
+                      setActiveTab('home');
+                    }}
+                    className="text-xs font-semibold text-[#1E4FA3] hover:underline cursor-pointer"
+                  >
+                    View in feed
+                  </button>
+                )}
+              </div>
+
+              {myPosts.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-[#E5E9F2] p-8 text-center space-y-2.5 shadow-nile-card">
+                  <div className="w-10 h-10 rounded-full bg-[#EEF2F9] text-[#1E4FA3] flex items-center justify-center mx-auto">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <p className="text-sm font-heading font-bold text-[#1F2328]">No items reported yet</p>
+                  <p className="text-xs text-[#6B7280]">Items you report as lost or found will appear here for easy management.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {myPosts.map(item => {
+                    const id = item._id || item.id;
+                    return (
+                      <div
+                        key={id}
+                        className="relative bg-white rounded-2xl border border-[#E5E9F2] p-4 shadow-nile-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-visible focus-within:z-40"
+                      >
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold text-white ${
+                                item.post_type === 'Lost' ? 'bg-[#16397A]' : 'bg-[#1E4FA3]'
+                              }`}
+                            >
+                              {item.post_type}
+                            </span>
+                            <span className="text-xs font-medium text-[#6B7280]">{item.category}</span>
+                          </div>
+                          <h4 className="font-heading font-bold text-sm text-[#1F2328] truncate">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-[#6B7280] flex items-center gap-1 truncate">
+                            <MapPin className="w-3 h-3 text-[#1E4FA3] shrink-0" />
+                            <span className="truncate">{item.location}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#F1F5F9]">
+                          <div className="w-36">
+                            <CustomSelect
+                              dropUp={true}
+                              value={item.status}
+                              onChange={(val) => handleQuickStatusChange(item, val)}
+                              options={[
+                                { value: 'Open', label: 'Open', icon: Clock },
+                                { value: 'Claimed', label: 'Claimed', icon: CheckCircle2 },
+                                { value: 'Returned', label: 'Returned', icon: CheckCircle2 }
+                              ]}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveItem(item);
+                              setIsEditOpen(true);
+                            }}
+                            className="p-2 rounded-xl bg-[#F8FAFC] hover:bg-slate-200 text-[#64748B] transition-colors cursor-pointer"
+                            title="Edit item"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveItem(item);
+                              setIsDeleteOpen(true);
+                            }}
+                            className="p-2 rounded-xl bg-[#F8FAFC] hover:bg-rose-50 text-[#F25C54] transition-colors cursor-pointer"
+                            title="Delete item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </main>
+        );
+      })()}
+
+      {/* ---------------------------------------------------- */}
       {/* 2.6 TACTILE FLOATING PILL BOTTOM NAVIGATION DOCK     */}
       {/* ---------------------------------------------------- */}
       <nav
         data-tour="bottom-dock"
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-[430px] bg-white/95 backdrop-blur-xl border border-[#BFDBFE] ring-4 ring-[#EEF2F9]/80 rounded-full p-1.5 floating-pill-nav flex items-center justify-between gap-1"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-[430px] bg-white/95 backdrop-blur-xl rounded-full p-1.5 floating-pill-nav flex items-center justify-between gap-1"
       >
         {/* Tab 1: Home */}
         <button
@@ -2006,8 +2217,8 @@ export default function App() {
           }}
           className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
             activeTab === 'home'
-              ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
-              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3]'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC]'
           }`}
         >
           <Home className="w-4 h-4" strokeWidth={activeTab === 'home' ? 2.4 : 1.9} />
@@ -2024,8 +2235,8 @@ export default function App() {
           onClick={() => setActiveTab('matches')}
           className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
             activeTab === 'matches'
-              ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
-              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3]'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC]'
           }`}
         >
           <div className="relative">
@@ -2044,8 +2255,8 @@ export default function App() {
           )}
         </button>
 
-        {/* CENTER SCULPTED + POST ACTION CRADLE */}
-        <div className="p-1 -my-4 bg-white rounded-full border border-[#BFDBFE] shadow-md shrink-0 mx-0.5">
+        {/* CENTER SCULPTED + POST ACTION CRADLE (Zero blue border!) */}
+        <div className="p-1 -my-4 bg-white rounded-full shadow-sm shrink-0 mx-0.5">
           <button
             onClick={() => setIsPostChooserOpen(true)}
             className="w-11 h-11 rounded-full btn-nile-pill text-white flex items-center justify-center btn-spring cursor-pointer group"
@@ -2060,8 +2271,8 @@ export default function App() {
           onClick={() => setActiveTab('claims')}
           className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
             activeTab === 'claims'
-              ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
-              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3]'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC]'
           }`}
         >
           <div className="relative">
@@ -2080,46 +2291,26 @@ export default function App() {
           )}
         </button>
 
-        {/* Tab 5: Audit (Admins Only) / Browse (Students) */}
-        {isAdmin ? (
-          <button
-            onClick={() => setActiveTab('audit')}
-            className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
-              activeTab === 'audit'
-                ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
-                : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
-            }`}
-          >
-            <Activity className="w-4 h-4" strokeWidth={activeTab === 'audit' ? 2.4 : 1.9} />
-            <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'audit' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
-              Audit
-            </span>
-            {activeTab === 'audit' && (
-              <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
-            )}
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              setActiveTab('browse');
-              const el = document.getElementById('campus-directory-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-            className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
-              activeTab === 'browse'
-                ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
-                : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
-            }`}
-          >
-            <SlidersHorizontal className="w-4 h-4" strokeWidth={activeTab === 'browse' ? 2.4 : 1.9} />
-            <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'browse' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
-              Browse
-            </span>
-            {activeTab === 'browse' && (
-              <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
-            )}
-          </button>
-        )}
+        {/* Tab 5: Profile */}
+        <button
+          onClick={() => {
+            setActiveTab('profile');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
+            activeTab === 'profile'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3]'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC]'
+          }`}
+        >
+          <User className="w-4 h-4" strokeWidth={activeTab === 'profile' ? 2.4 : 1.9} />
+          <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'profile' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
+            Profile
+          </span>
+          {activeTab === 'profile' && (
+            <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
+          )}
+        </button>
       </nav>
 
       {/* ---------------------------------------------------- */}
