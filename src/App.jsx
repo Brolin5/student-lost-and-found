@@ -150,6 +150,8 @@ export default function App() {
   const [isPostChooserOpen, setIsPostChooserOpen] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const notificationsRef = useRef(null);
 
   // Form states
   const [activeItem, setActiveItem] = useState(null);
@@ -236,6 +238,25 @@ export default function App() {
       loadData();
     }
   }, [currentUser]);
+
+  // Click outside & Escape listener for notification popover
+  useEffect(() => {
+    if (!isNotificationsOpen) return;
+    const handleClickOutside = (e) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsNotificationsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isNotificationsOpen]);
 
   // Auth Submit
   const handleAuthSubmit = async (e) => {
@@ -553,6 +574,7 @@ export default function App() {
     return matchesList.sort((a, b) => b.score - a.score);
   }, [items]);
 
+  const totalNotificationsCount = smartMatches.length + claims.length;
   const isAdmin = currentUser?.role === 'admin';
 
   // -------------------------------------------------------------------------
@@ -561,203 +583,190 @@ export default function App() {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-nile-dots flex flex-col justify-between text-[#1F2328] relative font-sans">
-        {/* Top Gold Accent Strip */}
-        <div className="h-1.5 w-full bg-[#EAB308]"></div>
+        {/* Top Nile Blue Accent Strip */}
+        <div className="h-1.5 w-full bg-[#1E4FA3]"></div>
 
-        <div className="p-4 sm:p-6 flex flex-col flex-1 justify-between max-w-md mx-auto w-full">
-          {/* Nile Header Brand with Vector Logo */}
-          <div className="flex items-center justify-between pt-2 pb-4">
-            <div className="flex items-center gap-2.5">
-              <NileLogo size={40} />
-              <div>
-                <span className="font-heading font-extrabold text-sm text-[#1E4FA3] tracking-tight block leading-tight">
-                  NILE UNIVERSITY OF NIGERIA
-                </span>
-                <span className="text-[9px] font-bold text-[#6B7280] tracking-widest uppercase block leading-tight">
-                  HONORIS UNITED UNIVERSITIES
-                </span>
+        <div className="p-4 sm:p-6 flex flex-col flex-1 justify-center max-w-sm sm:max-w-md mx-auto w-full my-auto animate-motion-blur-dialog">
+          {/* Soft Embossed Logo Squircle (TikTok Style 04) */}
+          <div className="w-20 h-20 rounded-3xl soft-logo-squircle border border-white flex items-center justify-center mx-auto mb-3 shadow-md">
+            <NileLogo size={46} />
+          </div>
+
+          {/* Heading Hierarchy matching TikTok Style */}
+          <div className="text-center mb-6">
+            <h1 className="font-heading font-extrabold text-2xl text-[#16397A] tracking-tight">
+              {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </h1>
+            <p className="text-xs text-[#6B7280] mt-1 font-medium">
+              {authMode === 'login'
+                ? 'Login to continue to your Nile portal'
+                : 'Register your verified student credentials'}
+            </p>
+          </div>
+
+          {/* Soft Embossed Card Container */}
+          <div className="bg-white rounded-3xl p-6 sm:p-7 soft-embossed-card space-y-4">
+            <form onSubmit={handleAuthSubmit} className="space-y-3.5">
+              {authMode === 'register' && (
+                <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl soft-input-pill">
+                  <User className="w-4 h-4 text-[#1E4FA3] shrink-0" />
+                  <input
+                    type="text"
+                    required
+                    value={authForm.name}
+                    onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
+                    placeholder="Full Student Name"
+                    className="w-full bg-transparent text-xs text-[#1F2328] placeholder-[#94A3B8] focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl soft-input-pill">
+                <User className="w-4 h-4 text-[#1E4FA3] shrink-0" />
+                <input
+                  type="text"
+                  required
+                  value={authForm.username}
+                  onChange={(e) => setAuthForm({ ...authForm, username: e.target.value })}
+                  placeholder="Student Username or ID"
+                  className="w-full bg-transparent text-xs text-[#1F2328] placeholder-[#94A3B8] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl soft-input-pill">
+                <Lock className="w-4 h-4 text-[#1E4FA3] shrink-0" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={authForm.password}
+                  onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                  placeholder="Password"
+                  className="w-full bg-transparent text-xs text-[#1F2328] placeholder-[#94A3B8] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[#94A3B8] hover:text-[#1E4FA3] p-1 transition-colors btn-spring cursor-pointer"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <Eye className="w-4 h-4 text-[#1E4FA3]" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-[#94A3B8]" />
+                  )}
+                </button>
+              </div>
+
+              {/* Forgot Password link */}
+              <div className="flex justify-end pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => addToast('Contact Nile IT Helpdesk at support@nileuniversity.edu.ng for credentials reset.', 'info')}
+                  className="text-[11px] font-semibold text-[#1E4FA3] hover:underline cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              {/* Primary Tactile Pill Button */}
+              <button
+                type="submit"
+                disabled={authSubmitting}
+                className="w-full py-3.5 rounded-2xl text-white font-heading font-extrabold text-sm tracking-wide btn-nile-pill btn-spring flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span>{authSubmitting ? 'Verifying...' : authMode === 'login' ? 'Login' : 'Sign Up'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            {/* OR CONTINUE WITH Divider */}
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#E2E8F0]"></div>
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-[#94A3B8]">
+                <span className="bg-white px-3">or continue with</span>
               </div>
             </div>
 
-            <div className="bg-[#EEF2F9] rounded-full px-3 py-1 text-[10px] font-bold text-[#1E4FA3] border border-[#E5E9F2]">
-              STUDENT PORTAL
+            {/* Soft Embossed Quick-Login Buttons */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('tunde', 'password123')}
+                className="py-2.5 px-2 rounded-2xl soft-quick-btn text-xs font-bold text-[#1E4FA3] flex items-center justify-center gap-1 btn-spring hover:border-[#1E4FA3] cursor-pointer"
+                title="Login as student Tunde"
+              >
+                <User className="w-3.5 h-3.5 text-[#1E4FA3]" />
+                <span>@tunde</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('chioma', 'password123')}
+                className="py-2.5 px-2 rounded-2xl soft-quick-btn text-xs font-bold text-[#1E4FA3] flex items-center justify-center gap-1 btn-spring hover:border-[#1E4FA3] cursor-pointer"
+                title="Login as student Chioma"
+              >
+                <User className="w-3.5 h-3.5 text-[#1E4FA3]" />
+                <span>@chioma</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('admin', 'admin123')}
+                className="py-2.5 px-2 rounded-2xl bg-[#1E4FA3] text-white text-xs font-bold flex items-center justify-center gap-1 btn-spring shadow-xs hover:bg-[#16397A] cursor-pointer"
+                title="Login as Administrator"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                <span>@admin</span>
+              </button>
             </div>
-          </div>
 
-          {/* Centered Login Card with 0.95 Scale Ease-out Motion Blur */}
-          <div className="my-auto animate-motion-blur-dialog">
-            <div className="bg-white rounded-2xl border border-[#E5E9F2] p-6 sm:p-8 shadow-nile-card space-y-6">
-              <div className="text-center space-y-2">
-                <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-widest block">
-                  STUDENT VERIFICATION
-                </span>
-                <div className="w-14 h-14 rounded-2xl bg-[#1E4FA3] text-white flex items-center justify-center mx-auto shadow-md">
-                  <ShieldCheck className="w-7 h-7 text-white" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1E4FA3] tracking-tight">
-                  {authMode === 'login' ? 'Sign In to Campus Registry' : 'New Student Registration'}
-                </h2>
-                <p className="text-xs text-[#6B7280] leading-relaxed max-w-xs mx-auto">
-                  {authMode === 'login'
-                    ? 'Official Nile University student portal. Sign in to post, match, and claim campus belongings.'
-                    : 'Register your verified student credentials to access the campus property board.'}
+            {/* Toggle Mode Link (Sign Up / Sign In) */}
+            <div className="pt-2 text-center text-xs text-[#6B7280]">
+              {authMode === 'login' ? (
+                <p>
+                  Don't have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('register')}
+                    className="font-bold text-[#1E4FA3] hover:underline cursor-pointer"
+                  >
+                    Sign Up
+                  </button>
                 </p>
-              </div>
-
-              {/* Segmented Auth Mode Switcher */}
-              <div className="flex bg-[#EEF2F9] p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setAuthMode('login')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all btn-spring ${
-                    authMode === 'login'
-                      ? 'bg-white text-[#1E4FA3] shadow-sm'
-                      : 'text-[#6B7280] hover:text-[#1F2328]'
-                  }`}
-                >
-                  Student Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAuthMode('register')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all btn-spring ${
-                    authMode === 'register'
-                      ? 'bg-white text-[#1E4FA3] shadow-sm'
-                      : 'text-[#6B7280] hover:text-[#1F2328]'
-                  }`}
-                >
-                  New Registration
-                </button>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleAuthSubmit} className="space-y-4">
-                {authMode === 'register' && (
-                  <div>
-                    <label className="block text-[11px] font-bold text-[#1F2328] uppercase tracking-wider mb-1">
-                      Full Student Name
-                    </label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        required
-                        value={authForm.name}
-                        onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                        placeholder="e.g. Tunde Adebayo"
-                        className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3] focus:bg-white transition-colors"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#1F2328] uppercase tracking-wider mb-1">
-                    Student Username
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      required
-                      value={authForm.username}
-                      onChange={(e) => setAuthForm({ ...authForm, username: e.target.value })}
-                      placeholder="e.g. tunde"
-                      className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl pl-9 pr-3 py-2.5 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3] focus:bg-white transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#1F2328] uppercase tracking-wider mb-1">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={authForm.password}
-                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      placeholder="••••••••"
-                      className="w-full bg-[#F8FAFC] border border-[#E5E9F2] rounded-xl pl-9 pr-10 py-2.5 text-xs text-[#1F2328] focus:outline-none focus:border-[#1E4FA3] focus:bg-white transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#1F2328] btn-spring"
-                    >
-                      {showPassword ? (
-                        <span className="animate-crossfade inline-flex"><Eye className="w-4 h-4 text-[#1E4FA3]" /></span>
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Primary CTA */}
-                <button
-                  type="submit"
-                  disabled={authSubmitting}
-                  className="w-full py-3 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-bold transition-all shadow-md btn-spring disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <span>{authSubmitting ? 'Verifying Student Session...' : authMode === 'login' ? 'Proceed to Campus Board' : 'Complete Registration'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-
-              {/* Quick Evaluator Access */}
-              <div className="pt-4 border-t border-slate-100 text-center space-y-2">
-                <span className="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider block">
-                  Quick Evaluator Demo Accounts (1-Click Fill)
-                </span>
-                <div className="grid grid-cols-3 gap-2">
+              ) : (
+                <p>
+                  Already have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => handleQuickLogin('tunde', 'password123')}
-                    className="py-1.5 px-2 rounded-lg bg-[#EEF2F9] border border-[#E5E9F2] hover:border-[#1E4FA3] text-[11px] font-semibold text-[#1E4FA3] transition-colors btn-spring"
+                    onClick={() => setAuthMode('login')}
+                    className="font-bold text-[#1E4FA3] hover:underline cursor-pointer"
                   >
-                    @tunde
+                    Sign In
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('chioma', 'password123')}
-                    className="py-1.5 px-2 rounded-lg bg-[#EEF2F9] border border-[#E5E9F2] hover:border-[#1E4FA3] text-[11px] font-semibold text-[#1E4FA3] transition-colors btn-spring"
-                  >
-                    @chioma
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('admin', 'admin123')}
-                    className="py-1.5 px-2 rounded-lg bg-[#1E4FA3] text-white text-[11px] font-semibold transition-colors btn-spring"
-                  >
-                    @admin
-                  </button>
-                </div>
-              </div>
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="text-center pb-2 text-[11px] text-[#6B7280]">
-            Nile University of Nigeria • Honoris United Universities
+          <div className="text-center pt-4 pb-2 text-[11px] text-[#94A3B8]">
+            Nile University of Nigeria • Student Portal
           </div>
         </div>
 
-        {/* Toasts */}
+        {/* Toasts (Strictly Blue & White Theme) */}
         <div className="fixed top-4 right-4 z-50 space-y-2 pointer-events-none">
           {toasts.map(toast => (
             <div
               key={toast.id}
               className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold toast-slide-in border ${
                 toast.type === 'success'
-                  ? 'bg-white text-[#3FA34D] border-[#3FA34D]/30'
+                  ? 'bg-white text-[#1E4FA3] border-[#1E4FA3]/30'
                   : toast.type === 'error'
                   ? 'bg-white text-[#F25C54] border-[#F25C54]/30'
                   : 'bg-white text-[#1E4FA3] border-[#1E4FA3]/30'
               }`}
             >
-              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[#3FA34D]" />}
+              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[#1E4FA3]" />}
               {toast.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0 text-[#F25C54]" />}
               {toast.type === 'info' && <Check className="w-4 h-4 shrink-0 text-[#1E4FA3]" />}
               <span>{toast.message}</span>
@@ -773,8 +782,8 @@ export default function App() {
   // -------------------------------------------------------------------------
   return (
     <div className="min-h-screen bg-white text-[#1F2328] pb-24 font-sans relative selection:bg-[#EEF2F9] selection:text-[#1E4FA3]">
-      {/* Top Gold Accent Strip */}
-      <div className="h-1.5 w-full bg-[#EAB308]"></div>
+      {/* Top Nile Blue Accent Strip */}
+      <div className="h-1.5 w-full bg-[#1E4FA3]"></div>
 
       {/* ---------------------------------------------------- */}
       {/* 2.1 Sticky Top App Bar (56px) */}
@@ -799,18 +808,202 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Header: Notification, Clean Session Pill, and Sign Out */}
+          {/* Right Header: Notification Popover, Clean Session Pill, and Sign Out */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab('matches')}
-              className="relative p-2 rounded-full hover:bg-[#EEF2F9] text-[#6B7280] hover:text-[#1E4FA3] transition-colors btn-spring"
-              title="Notifications & Matches"
-            >
-              <Bell className="w-4 h-4" />
-              {smartMatches.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#F25C54]"></span>
+            {/* Notification Bell with Flyout Popover */}
+            <div className="relative" ref={notificationsRef}>
+              <button
+                onClick={() => setIsNotificationsOpen(prev => !prev)}
+                className={`relative p-2 rounded-full transition-colors btn-spring cursor-pointer ${
+                  isNotificationsOpen
+                    ? 'bg-[#1E4FA3] text-white shadow-xs'
+                    : 'hover:bg-[#EEF2F9] text-[#6B7280] hover:text-[#1E4FA3]'
+                }`}
+                title="Notifications & Activity"
+                aria-expanded={isNotificationsOpen}
+              >
+                <Bell className="w-4 h-4" />
+                {totalNotificationsCount > 0 && (
+                  <span className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+                    isNotificationsOpen ? 'bg-amber-300 ring-2 ring-[#1E4FA3]' : 'bg-[#1E4FA3] ring-2 ring-white'
+                  }`}></span>
+                )}
+              </button>
+
+              {/* Notification Popover Flyout */}
+              {isNotificationsOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2 w-[calc(100vw-32px)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-[#E5E9F2] z-50 p-4 animate-dropdown-in origin-top-right overflow-hidden"
+                  role="dialog"
+                  aria-label="Notifications Panel"
+                >
+                  {/* Flyout Header */}
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E5E9F2]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#EEF2F9] flex items-center justify-center text-[#1E4FA3]">
+                        <Bell className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-bold text-sm text-[#1F2328] leading-tight">
+                          Campus Alerts
+                        </h3>
+                        <p className="text-[10px] text-[#6B7280]">
+                          Smart matches & claim status
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {totalNotificationsCount > 0 && (
+                        <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full bg-[#1E4FA3] text-white">
+                          {totalNotificationsCount} active
+                        </span>
+                      )}
+                      <button
+                        onClick={() => setIsNotificationsOpen(false)}
+                        className="p-1 rounded-md text-[#6B7280] hover:text-[#1F2328] hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Close notifications"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Flyout Body */}
+                  {totalNotificationsCount === 0 ? (
+                    <div className="py-8 px-4 text-center">
+                      <div className="w-11 h-11 rounded-full bg-[#F8FAFC] border border-[#E5E9F2] mx-auto flex items-center justify-center text-[#1E4FA3] mb-2.5">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </div>
+                      <h4 className="font-heading font-bold text-sm text-[#1F2328]">
+                        All Caught Up!
+                      </h4>
+                      <p className="text-xs text-[#6B7280] mt-1 max-w-[240px] mx-auto">
+                        No pending matches or claim status updates right now. You'll be notified automatically!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="max-h-[340px] overflow-y-auto py-2 space-y-3.5 pr-1 divide-y divide-[#F1F5F9]">
+                      {/* Section 1: Smart Match Alerts */}
+                      {smartMatches.length > 0 && (
+                        <div className="space-y-2 pt-1 first:pt-0">
+                          <div className="flex items-center justify-between text-xs font-bold text-[#6B7280] uppercase tracking-wider px-1">
+                            <span className="flex items-center gap-1.5 text-[#1E4FA3]">
+                              <ScanSearch className="w-3.5 h-3.5" />
+                              Smart Matches ({smartMatches.length})
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {smartMatches.slice(0, 3).map((match) => (
+                              <div
+                                key={match.id}
+                                onClick={() => {
+                                  setActiveTab('matches');
+                                  setIsNotificationsOpen(false);
+                                }}
+                                className="p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-[#EEF2F9] border border-[#E5E9F2] hover:border-[#CBD5E1] transition-all cursor-pointer group btn-spring"
+                              >
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-wide">
+                                    Radar Match
+                                  </span>
+                                  <span className="text-[10px] font-mono tabular-nums font-bold px-1.5 py-0.2 rounded-full bg-blue-100/90 text-[#1E4FA3]">
+                                    {match.score}% score
+                                  </span>
+                                </div>
+                                <p className="text-xs font-semibold text-[#1F2328] group-hover:text-[#1E4FA3] transition-colors line-clamp-1">
+                                  Found "{match.found.title}" matches your "{match.lost.title}"
+                                </p>
+                                <div className="flex items-center gap-2 mt-1 text-[11px] text-[#6B7280]">
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3 text-[#1E4FA3]" />
+                                    {match.found.location}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Section 2: Claim Status Updates */}
+                      {claims.length > 0 && (
+                        <div className="space-y-2 pt-3 first:pt-0">
+                          <div className="flex items-center justify-between text-xs font-bold text-[#6B7280] uppercase tracking-wider px-1">
+                            <span className="flex items-center gap-1.5 text-[#1E4FA3]">
+                              <FileCheck className="w-3.5 h-3.5" />
+                              Your Claims ({claims.length})
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {claims.slice(0, 3).map((claim) => (
+                              <div
+                                key={claim.id}
+                                onClick={() => {
+                                  setActiveTab('claims');
+                                  setIsNotificationsOpen(false);
+                                }}
+                                className="p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-[#EEF2F9] border border-[#E5E9F2] hover:border-[#CBD5E1] transition-all cursor-pointer group btn-spring"
+                              >
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">
+                                    Claim #{claim.id}
+                                  </span>
+                                  <span
+                                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                      claim.status === 'Approved'
+                                        ? 'bg-blue-100 text-[#1E4FA3]'
+                                        : claim.status === 'Rejected'
+                                        ? 'bg-rose-100 text-[#F25C54]'
+                                        : 'bg-slate-100 text-slate-700'
+                                    }`}
+                                  >
+                                    {claim.status}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-semibold text-[#1F2328] group-hover:text-[#1E4FA3] transition-colors line-clamp-1">
+                                  {claim.item_title}
+                                </p>
+                                <p className="text-[11px] text-[#6B7280] line-clamp-1 mt-0.5">
+                                  {claim.status === 'Approved'
+                                    ? 'Claim approved! Tap to view finder contact.'
+                                    : claim.status === 'Rejected'
+                                    ? 'Claim not approved by poster.'
+                                    : 'Awaiting finder review on campus.'}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Flyout Footer Navigation Buttons */}
+                  <div className="pt-3 border-t border-[#E5E9F2] grid grid-cols-2 gap-2 mt-2">
+                    <button
+                      onClick={() => {
+                        setActiveTab('matches');
+                        setIsNotificationsOpen(false);
+                      }}
+                      className="px-2.5 py-1.5 text-xs font-bold text-[#1E4FA3] bg-[#EEF2F9] hover:bg-blue-100 rounded-xl transition-colors text-center btn-spring flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <ScanSearch className="w-3.5 h-3.5" />
+                      <span>Matches ({smartMatches.length})</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveTab('claims');
+                        setIsNotificationsOpen(false);
+                      }}
+                      className="px-2.5 py-1.5 text-xs font-bold text-[#6B7280] hover:text-[#1F2328] bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-center btn-spring flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <FileCheck className="w-3.5 h-3.5" />
+                      <span>Claims ({claims.length})</span>
+                    </button>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Clean Student Pill (No green stuff!) */}
             <div className="hidden sm:flex items-center gap-2 bg-[#EEF2F9] rounded-full px-3 py-1 border border-[#E5E9F2]">
@@ -903,7 +1096,7 @@ export default function App() {
                   onClick={() => setMyItemsOnly(prev => !prev)}
                   className={`ml-auto px-3 py-1.5 rounded-full text-xs font-semibold transition-all btn-spring ${
                     myItemsOnly
-                      ? 'bg-[#3FA34D] text-white shadow-sm'
+                      ? 'bg-white text-[#1E4FA3] shadow-sm font-bold'
                       : 'bg-white/15 text-white/90 border border-white/20'
                   }`}
                 >
@@ -1143,11 +1336,11 @@ export default function App() {
                             </div>
                           )}
 
-                          {/* Top-Left Pill Badge: Lost (Coral) / Found (Campus Green) */}
+                          {/* Top-Left Pill Badge: Lost (Deep Navy) / Found (Nile Blue) */}
                           <div className="absolute top-2.5 left-2.5">
                             <span
                               className={`px-2.5 py-1 rounded-full text-[10px] font-heading font-extrabold uppercase tracking-wide text-white shadow-xs ${
-                                isLost ? 'bg-[#F25C54]' : 'bg-[#3FA34D]'
+                                isLost ? 'bg-[#16397A]' : 'bg-[#1E4FA3]'
                               }`}
                             >
                               {item.post_type}
@@ -1198,7 +1391,7 @@ export default function App() {
                                   title="Copy contact"
                                 >
                                   {copiedId === id ? (
-                                    <span className="animate-crossfade inline-flex"><Check className="w-3.5 h-3.5 text-[#3FA34D]" /></span>
+                                    <span className="animate-crossfade inline-flex"><Check className="w-3.5 h-3.5 text-[#1E4FA3]" /></span>
                                   ) : (
                                     <Copy className="w-3.5 h-3.5" />
                                   )}
@@ -1324,14 +1517,14 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-1.5">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#3FA34D] text-white">
+                    <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 space-y-1.5">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1E4FA3] text-white">
                         Found Item
                       </span>
                       <h4 className="font-heading font-bold text-xs text-[#1F2328]">{m.found.title}</h4>
                       <p className="text-[11px] text-[#6B7280] line-clamp-2">{m.found.description}</p>
                       <div className="text-[10px] text-[#6B7280] flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#3FA34D]" />
+                        <MapPin className="w-3 h-3 text-[#1E4FA3]" />
                         <span>{m.found.location}</span>
                       </div>
                     </div>
@@ -1424,7 +1617,7 @@ export default function App() {
                                   isDenied
                                     ? 'bg-rose-100 text-[#F25C54]'
                                     : isCreated
-                                    ? 'bg-emerald-100 text-[#3FA34D]'
+                                    ? 'bg-blue-100 text-[#1E4FA3]'
                                     : isClaim
                                     ? 'bg-blue-100 text-[#1E4FA3]'
                                     : 'bg-slate-100 text-slate-700'
@@ -1501,7 +1694,7 @@ export default function App() {
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 ${
                       claim.status === 'Approved'
-                        ? 'bg-emerald-100 text-[#3FA34D]'
+                        ? 'bg-blue-100 text-[#1E4FA3]'
                         : claim.status === 'Rejected'
                         ? 'bg-rose-100 text-[#F25C54]'
                         : 'bg-amber-100 text-amber-700'
@@ -1519,7 +1712,7 @@ export default function App() {
       {/* ---------------------------------------------------- */}
       {/* 2.6 FLOATING PILL BOTTOM NAVIGATION (Role-Aware) */}
       {/* ---------------------------------------------------- */}
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md bg-white border border-[#E5E9F2] rounded-full p-1.5 floating-pill-nav flex items-center justify-between shadow-nile-nav">
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md bg-white border border-[#E5E9F2] rounded-full p-1.5 floating-pill-nav flex items-center justify-between">
         {/* Tab 1: Home */}
         <button
           onClick={() => setActiveTab('home')}
@@ -1545,7 +1738,7 @@ export default function App() {
         {/* CENTER RAISED + POST BUTTON */}
         <button
           onClick={() => setIsPostChooserOpen(true)}
-          className="w-12 h-12 rounded-full bg-[#1E4FA3] hover:bg-[#16397A] text-white flex items-center justify-center -translate-y-3 shadow-lg btn-spring shrink-0 mx-1"
+          className="w-12 h-12 rounded-full bg-[#1E4FA3] hover:bg-[#16397A] text-white flex items-center justify-center -translate-y-3 shadow-sm btn-spring shrink-0 mx-1 cursor-pointer"
           title="Report Lost or Found Item"
         >
           <Plus className="w-6 h-6" />
@@ -1646,7 +1839,7 @@ export default function App() {
                   setActiveItem({ post_type: 'Lost', category: 'Electronics', status: 'Open' });
                   setIsCreateOpen(true);
                 }}
-                className="p-4 rounded-2xl bg-[#F25C54] text-white flex flex-col items-center justify-center gap-2 btn-spring shadow-sm"
+                className="p-4 rounded-2xl bg-[#16397A] text-white flex flex-col items-center justify-center gap-2 btn-spring shadow-sm cursor-pointer"
               >
                 <FileQuestion className="w-6 h-6" />
                 <span className="font-heading font-extrabold text-xs uppercase tracking-wide">
@@ -1660,7 +1853,7 @@ export default function App() {
                   setActiveItem({ post_type: 'Found', category: 'Electronics', status: 'Open' });
                   setIsCreateOpen(true);
                 }}
-                className="p-4 rounded-2xl bg-[#3FA34D] text-white flex flex-col items-center justify-center gap-2 btn-spring shadow-sm"
+                className="p-4 rounded-2xl bg-[#1E4FA3] text-white flex flex-col items-center justify-center gap-2 btn-spring shadow-sm cursor-pointer"
               >
                 <PackagePlus className="w-6 h-6" />
                 <span className="font-heading font-extrabold text-xs uppercase tracking-wide">
@@ -1836,13 +2029,13 @@ export default function App() {
             key={toast.id}
             className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold toast-slide-in border ${
               toast.type === 'success'
-                ? 'bg-white text-[#3FA34D] border-[#3FA34D]/30'
+                ? 'bg-white text-[#1E4FA3] border-[#1E4FA3]/30'
                 : toast.type === 'error'
                 ? 'bg-white text-[#F25C54] border-[#F25C54]/30'
                 : 'bg-white text-[#1E4FA3] border-[#1E4FA3]/30'
             }`}
           >
-            {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[#3FA34D]" />}
+            {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-[#1E4FA3]" />}
             {toast.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0 text-[#F25C54]" />}
             {toast.type === 'info' && <Check className="w-4 h-4 shrink-0 text-[#1E4FA3]" />}
             <span>{toast.message}</span>
