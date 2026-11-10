@@ -1062,7 +1062,7 @@ export default function App() {
               {/* Notification Tray Flyout */}
               {isNotificationsOpen && (
                 <div
-                  className="absolute right-0 top-full mt-2 w-[calc(100vw-32px)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-[#DBEAFE] z-50 p-4 animate-dropdown-in origin-top-right overflow-hidden"
+                  className="fixed inset-x-4 top-16 mx-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-[#DBEAFE] z-50 p-4 animate-dropdown-in origin-top-right overflow-hidden"
                   role="dialog"
                   aria-label="Notification Tray"
                 >
@@ -2370,8 +2370,11 @@ export default function App() {
               onClick={closeProductTour}
               style={{
                 top: `${Math.max(4, tourRect.top)}px`,
-                left: `${Math.max(4, tourRect.left)}px`,
-                width: `${tourRect.width}px`,
+                left: `${Math.max(8, tourRect.left)}px`,
+                width: `${Math.min(
+                  tourRect.width,
+                  (typeof window !== 'undefined' ? window.innerWidth : 390) - Math.max(8, tourRect.left) - 8
+                )}px`,
                 height: `${tourRect.height}px`
               }}
               className="fixed rounded-2xl tour-spotlight-ring pointer-events-none"
@@ -2389,19 +2392,18 @@ export default function App() {
               tourRect
                 ? {
                     top:
-                      tourRect.top > (typeof window !== 'undefined' ? window.innerHeight * 0.52 : 380)
-                        ? `${Math.max(16, tourRect.top - 196)}px`
-                        : `${Math.min((typeof window !== 'undefined' ? window.innerHeight - 210 : 500), tourRect.bottom + 14)}px`,
-                    left: '50%',
-                    transform: 'translateX(-50%)'
+                      tourRect.top > (typeof window !== 'undefined' ? window.innerHeight * 0.5 : 360)
+                        ? `${Math.max(16, tourRect.top - 210)}px`
+                        : `${Math.min(
+                            (typeof window !== 'undefined' ? window.innerHeight - 230 : 460),
+                            tourRect.bottom + 14
+                          )}px`
                   }
                 : {
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)'
+                    top: '35%'
                   }
             }
-            className="fixed w-[calc(100vw-32px)] max-w-sm bg-white rounded-2xl border border-[#BFDBFE] p-5 shadow-2xl z-50 transition-all duration-300 animate-dropdown-in space-y-3"
+            className="fixed inset-x-4 mx-auto max-w-sm bg-white rounded-2xl border border-[#BFDBFE] p-5 shadow-2xl z-50 transition-all duration-300 animate-dropdown-in space-y-3"
           >
             <div className="flex items-center justify-between">
               <span className="px-2.5 py-0.5 rounded-full bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] text-[10px] font-mono tabular-nums font-bold uppercase tracking-wider">
