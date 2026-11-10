@@ -70,5 +70,37 @@
     "password": "$2b$10$R91OH5fRV7KH1ft8EYSAlu.eEFdsPfbdHTOKGgujZ8VA92wvMpzR2",
     "role": "student",
     "created_at": "2026-11-10T15:51:26.121Z"
+  },
+  {
+    "_id": "usr_mwavnl4cjy47",
+    "username": "teststudent_mwavnl0e",
+    "name": "Test Student User",
+    "password": "$2b$10$k3acJX9vbzVt10nalNs/T.ow6mK93.OO3xPwo/K6M.0x9rbNmliYC",
+    "role": "student",
+    "created_at": "2026-11-10T16:01:15.180Z"
+  },
+  {
+    "_id": "usr_mwavnlfi0c5b",
+    "username": "otherstudent_mwavnlcj",
+    "name": "Other Student",
+    "password": "$2b$10$HzDnZdihEJdv6zupI0L3UensFMfnlE/JKdlHlLRjocdeJ/2JZ.eUu",
+    "role": "student",
+    "created_at": "2026-11-10T16:01:15.582Z"
+  },
+  {
+    "_id": "usr_mwavt797k4np",
+    "username": "teststudent_mwavt749",
+    "name": "Test Student User",
+    "password": "$2b$10$xmkVmNXal6eqgktBzRzE9ejJfbAUxDXxOyfsHUnxQoSH/GvSTGkXe",
+    "role": "student",
+    "created_at": "2026-11-10T16:05:37.147Z"
+  },
+  {
+    "_id": "usr_mwavt7ketxz6",
+    "username": "otherstudent_mwavt7h7",
+    "name": "Other Student",
+    "password": "$2b$10$VfMiZ3NfLqpFKhRqGjmBte.ZRemLWrkmrsbG0hN.xtGpEAcEnL4Y2",
+    "role": "student",
+    "created_at": "2026-11-10T16:05:37.550Z"
   }
 ]

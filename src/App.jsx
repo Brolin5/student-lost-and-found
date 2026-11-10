@@ -13,7 +13,6 @@ import {
   Image as ImageIcon,
   Copy,
   Eye,
-  RefreshCw,
   LogOut,
   ArrowRight,
   Check,
@@ -28,19 +27,18 @@ import {
   BookOpen,
   Package,
   ChevronDown,
-  Sparkles,
   FileCheck,
-  Send,
   Home,
   Compass,
   Bell,
   Clock,
-  ExternalLink,
-  ShieldAlert,
-  SlidersHorizontal,
   Key,
   Wallet,
-  Briefcase
+  Briefcase,
+  ScanSearch,
+  FileQuestion,
+  PackagePlus,
+  SlidersHorizontal
 } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -50,7 +48,43 @@ const getAuthHeaders = () => {
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
-// Category Definitions with Lucide SVG Icons (Zero emojis)
+// Vector SVG Nile University Emblem Logo (High-DPI / Crisp)
+function NileLogo({ size = 36, className = "" }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 44 44"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${className}`}
+    >
+      <rect width="44" height="44" rx="10" fill="#1E4FA3" />
+      <rect x="0.5" y="0.5" width="43" height="43" rx="9.5" stroke="rgba(255,255,255,0.18)" />
+      {/* Sunburst Rays of Academic Knowledge */}
+      <path d="M12 11L14.5 15.5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M17 9.5L18.5 14.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M22 8.5L22 14" stroke="rgba(255,255,255,0.8)" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M27 9.5L25.5 14.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M32 11L29.5 15.5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinecap="round" />
+      {/* Bold Modern NU Lettermark */}
+      <text
+        x="22"
+        y="32"
+        textAnchor="middle"
+        fontFamily="Montserrat, system-ui, sans-serif"
+        fontWeight="900"
+        fontSize="17"
+        fill="#FFFFFF"
+        letterSpacing="-0.5"
+      >
+        NU
+      </text>
+    </svg>
+  );
+}
+
+// Category Definitions with Professional Lucide SVG Icons (Zero emojis)
 const CATEGORIES = [
   { value: 'All', label: 'All Categories', icon: Layers },
   { value: 'Electronics', label: 'Electronics', icon: Laptop },
@@ -68,7 +102,7 @@ const STATUS_OPTIONS = [
   { value: 'All', label: 'All Statuses', icon: Clock },
   { value: 'Open', label: 'Status: Open', icon: Clock },
   { value: 'Claimed', label: 'Status: Claimed', icon: CheckCircle2 },
-  { value: 'Returned', label: 'Status: Returned', icon: Sparkles }
+  { value: 'Returned', label: 'Status: Returned', icon: CheckCircle2 }
 ];
 
 const AUDIT_ACTIONS = [
@@ -96,7 +130,6 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [stats, setStats] = useState({ total: 0, lost: 0, found: 0, claimed: 0 });
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Active Navigation Tab: 'home' | 'browse' | 'matches' | 'claims' | 'audit'
   const [activeTab, setActiveTab] = useState('home');
@@ -109,15 +142,16 @@ export default function App() {
   const [selectedAuditAction, setSelectedAuditAction] = useState('All');
   const [myItemsOnly, setMyItemsOnly] = useState(false);
 
-  // Modals & Bottom Sheets
+  // Modals & Confirmation Dialogs
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
   const [isPostChooserOpen, setIsPostChooserOpen] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
 
-  // Active item & Form states
+  // Form states
   const [activeItem, setActiveItem] = useState(null);
   const [authMode, setAuthMode] = useState('login'); // login | register
   const [authForm, setAuthForm] = useState({ name: '', username: '', password: '' });
@@ -144,30 +178,38 @@ export default function App() {
 
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
-    else setRefreshing(true);
     try {
       const headers = getAuthHeaders();
-      const [itemsRes, statsRes, auditRes, claimsRes] = await Promise.all([
+      const isAdmin = currentUser?.role === 'admin';
+
+      const requests = [
         fetch(`${API_BASE}/items`, { headers }),
         fetch(`${API_BASE}/items/stats`, { headers }),
-        fetch(`${API_BASE}/audit-logs`, { headers }),
         fetch(`${API_BASE}/claims/my`, { headers }).catch(() => ({ json: () => ({ success: false }) }))
-      ]);
+      ];
 
-      const itemsData = await itemsRes.json();
-      const statsData = await statsRes.json();
-      const auditData = await auditRes.json();
-      const claimsData = await claimsRes.json();
+      // Audit logs only fetched for admins (access control)
+      if (isAdmin) {
+        requests.push(fetch(`${API_BASE}/audit-logs`, { headers }).catch(() => ({ json: () => ({ success: false }) })));
+      }
+
+      const results = await Promise.all(requests);
+      const itemsData = await results[0].json();
+      const statsData = await results[1].json();
+      const claimsData = await results[2].json();
 
       if (itemsData.success) setItems(itemsData.data || []);
       if (statsData.success) setStats(statsData.data || { total: 0, lost: 0, found: 0, claimed: 0 });
-      if (auditData.success) setAuditLogs(auditData.data || []);
       if (claimsData.success) setClaims(claimsData.data || []);
+
+      if (isAdmin && results[3]) {
+        const auditData = await results[3].json();
+        if (auditData.success) setAuditLogs(auditData.data || []);
+      }
     } catch (err) {
       addToast('Could not load campus data: ' + err.message, 'error');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -234,6 +276,7 @@ export default function App() {
     setCurrentUser(null);
     setMyItemsOnly(false);
     setActiveTab('home');
+    setIsSignOutConfirmOpen(false);
     if (showNotification) addToast('Signed out of student session', 'info');
   };
 
@@ -510,6 +553,8 @@ export default function App() {
     return matchesList.sort((a, b) => b.score - a.score);
   }, [items]);
 
+  const isAdmin = currentUser?.role === 'admin';
+
   // -------------------------------------------------------------------------
   // 1. FORCED LOGIN VIEW (100% Gated Nile University Portal)
   // -------------------------------------------------------------------------
@@ -520,28 +565,22 @@ export default function App() {
         <div className="h-1.5 w-full bg-[#EAB308]"></div>
 
         <div className="p-4 sm:p-6 flex flex-col flex-1 justify-between max-w-md mx-auto w-full">
-          {/* Nile Header Brand */}
+          {/* Nile Header Brand with Vector Logo */}
           <div className="flex items-center justify-between pt-2 pb-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#1E4FA3] flex items-center justify-center text-white font-black text-sm tracking-wide shadow-sm">
-                NU
-              </div>
+              <NileLogo size={40} />
               <div>
                 <span className="font-heading font-extrabold text-sm text-[#1E4FA3] tracking-tight block leading-tight">
                   NILE UNIVERSITY OF NIGERIA
                 </span>
-                <span className="text-[9px] font-bold text-[#3FA34D] tracking-widest uppercase block leading-tight">
+                <span className="text-[9px] font-bold text-[#6B7280] tracking-widest uppercase block leading-tight">
                   HONORIS UNITED UNIVERSITIES
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-[#EEF2F9] rounded-full px-2.5 py-1 text-[10px] font-bold text-[#1E4FA3]">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3FA34D] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3FA34D]"></span>
-              </span>
-              <span>VERIFIED PORTAL</span>
+            <div className="bg-[#EEF2F9] rounded-full px-3 py-1 text-[10px] font-bold text-[#1E4FA3] border border-[#E5E9F2]">
+              STUDENT PORTAL
             </div>
           </div>
 
@@ -549,11 +588,11 @@ export default function App() {
           <div className="my-auto animate-motion-blur-dialog">
             <div className="bg-white rounded-2xl border border-[#E5E9F2] p-6 sm:p-8 shadow-nile-card space-y-6">
               <div className="text-center space-y-2">
-                <span className="text-[10px] font-bold text-[#3FA34D] uppercase tracking-widest block">
-                  STUDENT VERIFICATION PORTAL
+                <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-widest block">
+                  STUDENT VERIFICATION
                 </span>
                 <div className="w-14 h-14 rounded-2xl bg-[#1E4FA3] text-white flex items-center justify-center mx-auto shadow-md">
-                  <ShieldCheck className="w-7 h-7 text-[#3FA34D]" />
+                  <ShieldCheck className="w-7 h-7 text-white" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1E4FA3] tracking-tight">
                   {authMode === 'login' ? 'Sign In to Campus Registry' : 'New Student Registration'}
@@ -657,7 +696,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Primary CTA: "Proceed →" */}
+                {/* Primary CTA */}
                 <button
                   type="submit"
                   disabled={authSubmitting}
@@ -668,7 +707,7 @@ export default function App() {
                 </button>
               </form>
 
-              {/* Quick Evaluator Access (1-Click Fill) */}
+              {/* Quick Evaluator Access */}
               <div className="pt-4 border-t border-slate-100 text-center space-y-2">
                 <span className="text-[10px] text-[#6B7280] font-bold uppercase tracking-wider block">
                   Quick Evaluator Demo Accounts (1-Click Fill)
@@ -730,7 +769,7 @@ export default function App() {
   }
 
   // -------------------------------------------------------------------------
-  // 2. AUTHENTICATED MOBILE-FIRST UI (Marcelo Design X Spacing & Nile Theme)
+  // 2. AUTHENTICATED MOBILE-FIRST UI (Professional Affordance & Nile Theme)
   // -------------------------------------------------------------------------
   return (
     <div className="min-h-screen bg-white text-[#1F2328] pb-24 font-sans relative selection:bg-[#EEF2F9] selection:text-[#1E4FA3]">
@@ -742,27 +781,25 @@ export default function App() {
       {/* ---------------------------------------------------- */}
       <header className="bg-white border-b border-[#E5E9F2] sticky top-0 z-40 shadow-xs h-14">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
-          {/* Logo & Brand */}
+          {/* Logo & Brand with Crisp Vector SVG Logo */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <div className="w-8 h-8 rounded-lg bg-[#1E4FA3] flex items-center justify-center text-white font-black text-xs tracking-wider shrink-0 shadow-xs">
-              NU
-            </div>
+            <NileLogo size={34} />
             <div>
               <div className="flex items-center gap-1">
                 <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1E4FA3] tracking-tight">
                   NILE
                 </span>
                 <span className="font-heading font-extrabold text-xs sm:text-sm text-[#1F2328] tracking-tight">
-                  LOST & FOUND
+                  UNIVERSITY
                 </span>
               </div>
-              <span className="text-[9px] font-bold text-[#3FA34D] uppercase tracking-wider block leading-none">
-                CAMPUS REGISTRY
+              <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block leading-none">
+                CAMPUS LOST & FOUND
               </span>
             </div>
           </div>
 
-          {/* Right Header: Notification & Nile Wallet-style Session Pill */}
+          {/* Right Header: Notification, Clean Session Pill, and Sign Out */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('matches')}
@@ -775,33 +812,21 @@ export default function App() {
               )}
             </button>
 
-            {/* Nile Wallet Style Pill (from Portal Screenshot) */}
+            {/* Clean Student Pill (No green stuff!) */}
             <div className="hidden sm:flex items-center gap-2 bg-[#EEF2F9] rounded-full px-3 py-1 border border-[#E5E9F2]">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3FA34D] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3FA34D]"></span>
-              </span>
               <span className="text-[11px] font-bold text-[#1E4FA3] tabular-nums">
                 @{currentUser.username}
               </span>
-              <span className="text-[9px] uppercase font-bold text-[#6B7280] bg-white px-1.5 py-0.5 rounded-full">
+              <span className="text-[9px] uppercase font-bold text-[#6B7280] bg-white px-2 py-0.5 rounded-full border border-[#E5E9F2] shadow-2xs">
                 {currentUser.role}
               </span>
             </div>
 
+            {/* Sign Out with Confirmation Modal Trigger */}
             <button
-              onClick={() => loadData(true)}
-              disabled={refreshing}
-              className="p-2 rounded-full hover:bg-[#EEF2F9] text-[#6B7280] hover:text-[#1E4FA3] transition-colors btn-spring"
-              title="Refresh feed"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-[#1E4FA3]' : ''}`} />
-            </button>
-
-            <button
-              onClick={() => handleLogout(true)}
+              onClick={() => setIsSignOutConfirmOpen(true)}
               className="p-2 rounded-full hover:bg-rose-50 text-[#6B7280] hover:text-[#F25C54] transition-colors btn-spring"
-              title="Sign out"
+              title="Sign out of student session"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -886,66 +911,90 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Four Round Labeled Quick Actions */}
-              <div className="grid grid-cols-4 gap-3 pt-2 text-center">
+              {/* FOUR PROFESSIONAL CLICKABLE ACTION BUTTON CARDS */}
+              {/* Designed with tactile card borders, hover lift, inner icon squircle tile & clear clickability */}
+              <div className="grid grid-cols-4 gap-3 pt-2">
+                {/* 1. Report Lost Button */}
                 <button
+                  type="button"
                   onClick={() => {
                     setActiveItem({ post_type: 'Lost', category: 'Electronics', status: 'Open' });
                     setIsCreateOpen(true);
                   }}
-                  className="flex flex-col items-center gap-1.5 group btn-spring"
+                  className="flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl bg-white/12 hover:bg-white/20 active:scale-[0.96] border border-white/25 backdrop-blur-md transition-all btn-spring shadow-xs group cursor-pointer"
                 >
-                  <div className="w-13 h-13 rounded-2xl bg-[#F25C54] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <Search className="w-5 h-5" />
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 group-hover:bg-white/25 flex items-center justify-center text-white mb-1.5 transition-colors shadow-inner">
+                    <FileQuestion className="w-5 h-5 text-white" strokeWidth={1.75} />
                   </div>
-                  <span className="text-[10px] font-bold tracking-wider text-white uppercase">
-                    REPORT LOST
+                  <span className="text-[11px] font-heading font-bold text-white tracking-wide text-center leading-tight">
+                    Report Lost
                   </span>
                 </button>
 
+                {/* 2. Report Found Button */}
                 <button
+                  type="button"
                   onClick={() => {
                     setActiveItem({ post_type: 'Found', category: 'Electronics', status: 'Open' });
                     setIsCreateOpen(true);
                   }}
-                  className="flex flex-col items-center gap-1.5 group btn-spring"
+                  className="flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl bg-white/12 hover:bg-white/20 active:scale-[0.96] border border-white/25 backdrop-blur-md transition-all btn-spring shadow-xs group cursor-pointer"
                 >
-                  <div className="w-13 h-13 rounded-2xl bg-[#3FA34D] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <CheckCircle2 className="w-5 h-5" />
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 group-hover:bg-white/25 flex items-center justify-center text-white mb-1.5 transition-colors shadow-inner">
+                    <PackagePlus className="w-5 h-5 text-white" strokeWidth={1.75} />
                   </div>
-                  <span className="text-[10px] font-bold tracking-wider text-white uppercase">
-                    REPORT FOUND
+                  <span className="text-[11px] font-heading font-bold text-white tracking-wide text-center leading-tight">
+                    Report Found
                   </span>
                 </button>
 
+                {/* 3. Smart Match Button */}
                 <button
+                  type="button"
                   onClick={() => setActiveTab('matches')}
-                  className="flex flex-col items-center gap-1.5 group btn-spring"
+                  className="flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl bg-white/12 hover:bg-white/20 active:scale-[0.96] border border-white/25 backdrop-blur-md transition-all btn-spring shadow-xs group cursor-pointer"
                 >
-                  <div className="w-13 h-13 rounded-2xl bg-white/20 border border-white/30 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <Compass className="w-5 h-5 text-[#EAB308]" />
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 group-hover:bg-white/25 flex items-center justify-center text-white mb-1.5 transition-colors shadow-inner">
+                    <ScanSearch className="w-5 h-5 text-white" strokeWidth={1.75} />
                   </div>
-                  <span className="text-[10px] font-bold tracking-wider text-white uppercase">
-                    SMART MATCH
+                  <span className="text-[11px] font-heading font-bold text-white tracking-wide text-center leading-tight">
+                    Smart Match
                   </span>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab('audit')}
-                  className="flex flex-col items-center gap-1.5 group btn-spring"
-                >
-                  <div className="w-13 h-13 rounded-2xl bg-white/20 border border-white/30 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                    <Activity className="w-5 h-5 text-emerald-300" />
-                  </div>
-                  <span className="text-[10px] font-bold tracking-wider text-white uppercase">
-                    AUDIT LOG
-                  </span>
-                </button>
+                {/* 4. Action Button: My Claims for Students / Admin Audit for Admin */}
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('audit')}
+                    className="flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl bg-white/12 hover:bg-white/20 active:scale-[0.96] border border-white/25 backdrop-blur-md transition-all btn-spring shadow-xs group cursor-pointer"
+                  >
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 group-hover:bg-white/25 flex items-center justify-center text-white mb-1.5 transition-colors shadow-inner">
+                      <ShieldCheck className="w-5 h-5 text-white" strokeWidth={1.75} />
+                    </div>
+                    <span className="text-[11px] font-heading font-bold text-white tracking-wide text-center leading-tight">
+                      Admin Audit
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('claims')}
+                    className="flex flex-col items-center justify-center p-3 sm:p-3.5 rounded-2xl bg-white/12 hover:bg-white/20 active:scale-[0.96] border border-white/25 backdrop-blur-md transition-all btn-spring shadow-xs group cursor-pointer"
+                  >
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/15 group-hover:bg-white/25 flex items-center justify-center text-white mb-1.5 transition-colors shadow-inner">
+                      <FileCheck className="w-5 h-5 text-white" strokeWidth={1.75} />
+                    </div>
+                    <span className="text-[11px] font-heading font-bold text-white tracking-wide text-center leading-tight">
+                      My Claims
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </section>
 
-          {/* WHITE SHEET OVERLAPPING THE HERO (Marcelo Design X Spec) */}
+          {/* WHITE SHEET OVERLAPPING THE HERO (28px radius) */}
           <section className="-mt-6 bg-white sheet-overlap-top border-t border-[#E5E9F2] px-4 sm:px-6 pt-6 max-w-5xl mx-auto shadow-2xl">
             {/* Quick Category Chips with Lucide Icons (Zero emojis) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
@@ -969,22 +1018,22 @@ export default function App() {
               })}
             </div>
 
-            {/* Smart Match Banner (if matches exist) */}
+            {/* Smart Match Banner with Professional ScanSearch Icon (Zero Sparkles) */}
             {smartMatches.length > 0 && (
               <div
                 onClick={() => setActiveTab('matches')}
                 className="mb-6 p-4 rounded-2xl bg-[#EEF2F9] border border-[#1E4FA3]/20 flex items-center justify-between gap-3 cursor-pointer hover:bg-[#E5EDFB] transition-colors btn-spring"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#1E4FA3] text-white flex items-center justify-center shrink-0">
-                    <Sparkles className="w-5 h-5 text-[#EAB308]" />
+                  <div className="w-10 h-10 rounded-xl bg-[#1E4FA3] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <ScanSearch className="w-5 h-5 text-white" strokeWidth={2} />
                   </div>
                   <div>
                     <span className="font-heading font-extrabold text-xs text-[#1E4FA3] block">
                       Smart Match Radar Found {smartMatches.length} Possible Matches!
                     </span>
                     <span className="text-[11px] text-[#6B7280]">
-                      Review AI-suggested matches between lost and found items.
+                      Review intelligent matches between lost and found items.
                     </span>
                   </div>
                 </div>
@@ -1006,7 +1055,7 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Custom Status Dropdown (No native <select>!) */}
+              {/* Custom Status Dropdown (Zero native select) */}
               <div className="w-40">
                 <CustomSelect
                   value={selectedStatus}
@@ -1173,7 +1222,6 @@ export default function App() {
                       {/* Card Footer: Owner Controls with Custom Dropdown */}
                       {isOwner && (
                         <div className="p-3 bg-[#F8FAFC] border-t border-[#E5E9F2] flex items-center justify-between gap-2">
-                          {/* Custom Status Dropdown for Post Owner */}
                           <div className="flex-1">
                             <CustomSelect
                               value={item.status}
@@ -1181,7 +1229,7 @@ export default function App() {
                               options={[
                                 { value: 'Open', label: 'Open', icon: Clock },
                                 { value: 'Claimed', label: 'Claimed', icon: CheckCircle2 },
-                                { value: 'Returned', label: 'Returned', icon: Sparkles }
+                                { value: 'Returned', label: 'Returned', icon: CheckCircle2 }
                               ]}
                             />
                           </div>
@@ -1226,7 +1274,7 @@ export default function App() {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-motion-blur">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-[#3FA34D] uppercase tracking-widest block">
+              <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-widest block">
                 INTELLIGENT REUNION ENGINE
               </span>
               <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1E4FA3] tracking-tight">
@@ -1239,12 +1287,12 @@ export default function App() {
           </div>
 
           <p className="text-xs text-[#6B7280] leading-relaxed">
-            Our campus algorithm continuously matches Lost and Found items based on category taxonomy, keyword token overlap, and lecture hall location proximity.
+            Our campus algorithm continuously pairs Lost and Found reports based on category taxonomy, keyword token overlap, and campus location proximity.
           </p>
 
           {smartMatches.length === 0 ? (
             <div className="bg-white rounded-2xl border border-[#E5E9F2] p-10 text-center space-y-2">
-              <Compass className="w-10 h-10 text-[#6B7280] mx-auto" />
+              <ScanSearch className="w-10 h-10 text-[#6B7280] mx-auto" strokeWidth={1.5} />
               <p className="text-sm font-heading font-bold text-[#1F2328]">No high-confidence matches yet</p>
               <p className="text-xs text-[#6B7280]">As more lost and found items are logged, matching pairs will appear here automatically.</p>
             </div>
@@ -1254,12 +1302,9 @@ export default function App() {
                 <div key={m.id} className="bg-white rounded-2xl border border-[#E5E9F2] p-5 shadow-nile-card space-y-4 card-hover-spring">
                   {/* Match Confidence Score */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#3FA34D]"></span>
-                      <span className="text-xs font-heading font-extrabold text-[#1E4FA3]">
-                        {m.score}% Similarity Match
-                      </span>
-                    </div>
+                    <span className="text-xs font-heading font-extrabold text-[#1E4FA3]">
+                      {m.score}% Similarity Match
+                    </span>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EEF2F9] text-[#1E4FA3]">
                       Category: {m.lost.category}
                     </span>
@@ -1267,7 +1312,6 @@ export default function App() {
 
                   {/* Two Column Comparison: Lost Item <-> Found Item */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    {/* Lost side */}
                     <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-100 space-y-1.5">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F25C54] text-white">
                         Lost Item
@@ -1280,7 +1324,6 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Found side */}
                     <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-1.5">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#3FA34D] text-white">
                         Found Item
@@ -1294,7 +1337,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Action */}
                   <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                     <button
                       onClick={() => {
@@ -1314,92 +1356,103 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.4 AUDIT TRAIL / SECURITY LOG TAB */}
+      {/* 2.4 AUDIT TRAIL / SECURITY LOG TAB (Admins Only!) */}
       {/* ---------------------------------------------------- */}
       {activeTab === 'audit' && (
         <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-motion-blur">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <span className="text-[10px] font-bold text-[#3FA34D] uppercase tracking-widest block">
-                COMPLIANCE & INTEGRITY
-              </span>
-              <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1E4FA3] tracking-tight">
-                Campus Security Audit Trail
-              </h2>
-            </div>
-
-            {/* Custom Audit Action Dropdown */}
-            <div className="w-48">
-              <CustomSelect
-                value={selectedAuditAction}
-                onChange={(val) => setSelectedAuditAction(val)}
-                options={AUDIT_ACTIONS}
-              />
-            </div>
-          </div>
-
-          <p className="text-xs text-[#6B7280]">
-            Tamper-evident system log tracking student authentications, item publications, verification claims, and permission enforcement.
-          </p>
-
-          <div className="bg-white rounded-2xl border border-[#E5E9F2] shadow-nile-card overflow-hidden">
-            <div className="p-4 bg-[#EEF2F9] border-b border-[#E5E9F2] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3FA34D] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3FA34D]"></span>
-                </span>
-                <span className="text-xs font-bold text-[#1E4FA3]">Live Campus Activity Trail</span>
+          {!isAdmin ? (
+            <div className="bg-white rounded-2xl border border-rose-200 p-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-rose-50 text-[#F25C54] flex items-center justify-center mx-auto">
+                <AlertCircle className="w-6 h-6" />
               </div>
-              <span className="text-xs text-[#6B7280] font-mono tabular-nums">
-                {auditLogs.length} events logged
-              </span>
+              <h3 className="font-heading font-extrabold text-base text-[#1F2328]">Access Restricted</h3>
+              <p className="text-xs text-[#6B7280]">Campus security audit trails are restricted to university administrators only.</p>
+              <button
+                onClick={() => setActiveTab('home')}
+                className="px-4 py-2 rounded-xl bg-[#1E4FA3] text-white text-xs font-bold btn-spring"
+              >
+                Back to Home
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-widest block">
+                    ADMINISTRATIVE COMPLIANCE
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1E4FA3] tracking-tight">
+                    Campus Security Audit Trail
+                  </h2>
+                </div>
 
-            <div className="divide-y divide-[#E5E9F2] max-h-[600px] overflow-y-auto">
-              {auditLogs
-                .filter(l => selectedAuditAction === 'All' || l.action === selectedAuditAction)
-                .map(log => {
-                  const isDenied = log.action === 'ACCESS_DENIED';
-                  const isCreated = log.action === 'ITEM_CREATED';
-                  const isClaim = log.action.includes('CLAIM');
+                <div className="w-48">
+                  <CustomSelect
+                    value={selectedAuditAction}
+                    onChange={(val) => setSelectedAuditAction(val)}
+                    options={AUDIT_ACTIONS}
+                  />
+                </div>
+              </div>
 
-                  return (
-                    <div key={log.id} className="p-4 hover:bg-[#F8FAFC] transition-colors flex items-start justify-between gap-3 text-xs">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
-                              isDenied
-                                ? 'bg-rose-100 text-[#F25C54]'
-                                : isCreated
-                                ? 'bg-emerald-100 text-[#3FA34D]'
-                                : isClaim
-                                ? 'bg-blue-100 text-[#1E4FA3]'
-                                : 'bg-slate-100 text-slate-700'
-                            }`}
-                          >
-                            {log.action}
-                          </span>
-                          <span className="font-bold text-[#1F2328]">@{log.actor_username}</span>
-                          <span className="text-[10px] text-[#6B7280]">({log.actor_role})</span>
+              <p className="text-xs text-[#6B7280]">
+                Tamper-evident system log tracking student authentications, item publications, verification claims, and permission enforcement.
+              </p>
+
+              <div className="bg-white rounded-2xl border border-[#E5E9F2] shadow-nile-card overflow-hidden">
+                <div className="p-4 bg-[#EEF2F9] border-b border-[#E5E9F2] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#1E4FA3]">Administrative Activity Trail</span>
+                  <span className="text-xs text-[#6B7280] font-mono tabular-nums">
+                    {auditLogs.length} events recorded
+                  </span>
+                </div>
+
+                <div className="divide-y divide-[#E5E9F2] max-h-[600px] overflow-y-auto">
+                  {auditLogs
+                    .filter(l => selectedAuditAction === 'All' || l.action === selectedAuditAction)
+                    .map(log => {
+                      const isDenied = log.action === 'ACCESS_DENIED';
+                      const isCreated = log.action === 'ITEM_CREATED';
+                      const isClaim = log.action.includes('CLAIM');
+
+                      return (
+                        <div key={log.id} className="p-4 hover:bg-[#F8FAFC] transition-colors flex items-start justify-between gap-3 text-xs">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                                  isDenied
+                                    ? 'bg-rose-100 text-[#F25C54]'
+                                    : isCreated
+                                    ? 'bg-emerald-100 text-[#3FA34D]'
+                                    : isClaim
+                                    ? 'bg-blue-100 text-[#1E4FA3]'
+                                    : 'bg-slate-100 text-slate-700'
+                                }`}
+                              >
+                                {log.action}
+                              </span>
+                              <span className="font-bold text-[#1F2328]">@{log.actor_username}</span>
+                              <span className="text-[10px] text-[#6B7280]">({log.actor_role})</span>
+                            </div>
+                            <p className="text-[#1F2328] font-medium leading-relaxed">
+                              {log.details}
+                            </p>
+                            <span className="text-[10px] text-[#6B7280] font-mono">
+                              Client IP: {log.ip_address}
+                            </span>
+                          </div>
+
+                          <div className="text-right text-[11px] font-mono tabular-nums text-[#6B7280] shrink-0">
+                            {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </div>
                         </div>
-                        <p className="text-[#1F2328] font-medium leading-relaxed">
-                          {log.details}
-                        </p>
-                        <span className="text-[10px] text-[#6B7280] font-mono">
-                          Client IP: {log.ip_address}
-                        </span>
-                      </div>
-
-                      <div className="text-right text-[11px] font-mono tabular-nums text-[#6B7280] shrink-0">
-                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </>
+          )}
         </main>
       )}
 
@@ -1410,7 +1463,7 @@ export default function App() {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 animate-motion-blur">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-bold text-[#3FA34D] uppercase tracking-widest block">
+              <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-widest block">
                 VERIFICATION DESK
               </span>
               <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1E4FA3] tracking-tight">
@@ -1464,7 +1517,7 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.6 FLOATING PILL BOTTOM NAVIGATION (Marcelo Design X Spec) */}
+      {/* 2.6 FLOATING PILL BOTTOM NAVIGATION (Role-Aware) */}
       {/* ---------------------------------------------------- */}
       <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md bg-white border border-[#E5E9F2] rounded-full p-1.5 floating-pill-nav flex items-center justify-between shadow-nile-nav">
         {/* Tab 1: Home */}
@@ -1485,7 +1538,7 @@ export default function App() {
             activeTab === 'matches' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
           }`}
         >
-          <Compass className="w-4 h-4" />
+          <ScanSearch className="w-4 h-4" />
           <span className="text-[9px] uppercase tracking-wider">Matches</span>
         </button>
 
@@ -1498,7 +1551,7 @@ export default function App() {
           <Plus className="w-6 h-6" />
         </button>
 
-        {/* Tab 3: Claims */}
+        {/* Tab 4: Claims */}
         <button
           onClick={() => setActiveTab('claims')}
           className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
@@ -1509,20 +1562,66 @@ export default function App() {
           <span className="text-[9px] uppercase tracking-wider">Claims</span>
         </button>
 
-        {/* Tab 4: Audit Log */}
-        <button
-          onClick={() => setActiveTab('audit')}
-          className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
-            activeTab === 'audit' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
-          }`}
-        >
-          <Activity className="w-4 h-4" />
-          <span className="text-[9px] uppercase tracking-wider">Audit</span>
-        </button>
+        {/* Tab 5: Audit (Admins Only) / Directory (Students) */}
+        {isAdmin ? (
+          <button
+            onClick={() => setActiveTab('audit')}
+            className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
+              activeTab === 'audit' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span className="text-[9px] uppercase tracking-wider">Audit</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setActiveTab('home');
+              window.scrollTo({ top: 400, behavior: 'smooth' });
+            }}
+            className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
+              activeTab === 'home' && selectedType !== 'All' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="text-[9px] uppercase tracking-wider">Browse</span>
+          </button>
+        )}
       </nav>
 
       {/* ---------------------------------------------------- */}
-      {/* 2.7 POST TYPE CHOOSER BOTTOM SHEET */}
+      {/* 2.7 SIGN OUT CONFIRMATION MODAL */}
+      {/* ---------------------------------------------------- */}
+      {isSignOutConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl bg-white border border-[#E5E9F2] p-6 text-center space-y-4 shadow-2xl animate-motion-blur-dialog">
+            <div className="w-12 h-12 rounded-full bg-[#EEF2F9] text-[#1E4FA3] flex items-center justify-center mx-auto">
+              <LogOut className="w-6 h-6" />
+            </div>
+            <h3 className="font-heading font-extrabold text-base text-[#1E4FA3]">Sign Out of Session?</h3>
+            <p className="text-xs text-[#6B7280] leading-relaxed">
+              Are you sure you want to end your active session as <strong>@{currentUser.username}</strong> on the Nile Lost & Found registry?
+            </p>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={() => setIsSignOutConfirmOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 text-xs font-bold text-[#6B7280] btn-spring"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleLogout(true)}
+                className="flex-1 py-2.5 rounded-xl bg-[#1E4FA3] hover:bg-[#16397A] text-white text-xs font-heading font-bold btn-spring"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------- */}
+      {/* 2.8 POST TYPE CHOOSER BOTTOM SHEET */}
       {/* ---------------------------------------------------- */}
       {isPostChooserOpen && (
         <div
@@ -1549,7 +1648,7 @@ export default function App() {
                 }}
                 className="p-4 rounded-2xl bg-[#F25C54] text-white flex flex-col items-center justify-center gap-2 btn-spring shadow-sm"
               >
-                <Search className="w-6 h-6" />
+                <FileQuestion className="w-6 h-6" />
                 <span className="font-heading font-extrabold text-xs uppercase tracking-wide">
                   I Lost Something
                 </span>
@@ -1563,7 +1662,7 @@ export default function App() {
                 }}
                 className="p-4 rounded-2xl bg-[#3FA34D] text-white flex flex-col items-center justify-center gap-2 btn-spring shadow-sm"
               >
-                <CheckCircle2 className="w-6 h-6" />
+                <PackagePlus className="w-6 h-6" />
                 <span className="font-heading font-extrabold text-xs uppercase tracking-wide">
                   I Found Something
                 </span>
@@ -1574,14 +1673,14 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.8 CLAIM ITEM VERIFICATION MODAL (Privacy Protection) */}
+      {/* 2.9 CLAIM ITEM VERIFICATION MODAL */}
       {/* ---------------------------------------------------- */}
       {isClaimModalOpen && activeItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-2xl bg-white border border-[#E5E9F2] p-6 shadow-2xl animate-motion-blur-dialog space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[10px] font-bold text-[#3FA34D] uppercase tracking-wider block">
+                <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-wider block">
                   OWNERSHIP VERIFICATION
                 </span>
                 <h3 className="font-heading font-extrabold text-base text-[#1E4FA3]">
@@ -1647,7 +1746,7 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.9 CREATE / EDIT ITEM MODAL (No native dropdowns!) */}
+      {/* 2.10 CREATE / EDIT ITEM MODAL (No native dropdowns!) */}
       {/* ---------------------------------------------------- */}
       {(isCreateOpen || isEditOpen) && (
         <ItemFormModal
@@ -1667,7 +1766,7 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.10 DELETE CONFIRMATION MODAL */}
+      {/* 2.11 DELETE CONFIRMATION MODAL */}
       {/* ---------------------------------------------------- */}
       {isDeleteOpen && activeItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
@@ -1702,7 +1801,7 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.11 FULLSCREEN IMAGE LIGHTBOX */}
+      {/* 2.12 FULLSCREEN IMAGE LIGHTBOX */}
       {/* ---------------------------------------------------- */}
       {lightboxImage && (
         <div
@@ -1729,7 +1828,7 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.12 FLOATING TOASTS */}
+      {/* 2.13 FLOATING TOASTS */}
       {/* ---------------------------------------------------- */}
       <div className="fixed top-4 right-4 z-50 space-y-2 pointer-events-none">
         {toasts.map(toast => (
@@ -1868,7 +1967,7 @@ function ItemFormModal({ mode, initialData, onClose, onSubmit, submitting }) {
         {/* Modal Header */}
         <div className="p-4 bg-[#EEF2F9] border-b border-[#E5E9F2] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-[#3FA34D] uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-wider block">
               CAMPUS PROPERTY REGISTRY
             </span>
             <h3 className="font-heading font-extrabold text-base text-[#1E4FA3]">

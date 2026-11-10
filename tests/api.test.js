@@ -293,22 +293,36 @@ async function runTests() {
     assert(emptyUploadData.success === false, 'Upload reports failure for empty request');
 
     // ----------------------------------------------------
-    // TEST 14: Audit Trail Logging & Verification
+    // TEST 14: Audit Trail Logging & Access Control (Admin-Only)
     // ----------------------------------------------------
-    console.log('\n--- Suite 14: Audit Trail Logging & Access Control ---');
+    console.log('\n--- Suite 14: Audit Trail Logging & Access Control (Admin-Only) ---');
     // Unauthenticated rejection
     const unauthAuditRes = await fetch(`${baseUrl}/api/audit-logs`);
     assert(unauthAuditRes.status === 401, 'Rejects unauthenticated access to audit logs with HTTP 401');
 
-    // Authenticated retrieval
-    const authAuditRes = await fetch(`${baseUrl}/api/audit-logs`, {
+    // Student rejection (Access Control: audit is only for admins)
+    const studentAuditRes = await fetch(`${baseUrl}/api/audit-logs`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
+    assert(studentAuditRes.status === 403, 'Rejects student access to audit logs with HTTP 403 Forbidden');
+
+    // Admin login & authorized retrieval
+    const adminLoginRes = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'admin', password: 'admin123' })
+    });
+    const adminLoginData = await adminLoginRes.json();
+    const adminToken = adminLoginData.token;
+
+    const authAuditRes = await fetch(`${baseUrl}/api/audit-logs`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
     const authAuditData = await authAuditRes.json();
-    assert(authAuditRes.status === 200, 'Authenticated user retrieves audit logs with HTTP 200');
+    assert(authAuditRes.status === 200, 'Administrator retrieves audit logs with HTTP 200');
     assert(authAuditData.success === true, 'Audit log response contains success: true');
     assert(Array.isArray(authAuditData.data), 'Audit logs returned in an array');
-    assert(authAuditData.data.some(l => l.action === 'AUTH_LOGIN'), 'Audit trail recorded student login event');
+    assert(authAuditData.data.some(l => l.action === 'AUTH_LOGIN'), 'Audit trail recorded login event');
     assert(authAuditData.data.some(l => l.action === 'ACCESS_DENIED'), 'Audit trail recorded unauthorized access denial event');
 
     // ----------------------------------------------------
