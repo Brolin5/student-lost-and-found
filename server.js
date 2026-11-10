@@ -1,4 +1,5 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -6,15 +7,32 @@ const fs = require('fs');
 const { connectDB } = require('./config/db');
 const itemRoutes = require('./routes/itemRoutes');
 const authRoutes = require('./routes/authRoutes');
+const {
+  initRealtimeServer,
+  startKeepAlivePlunger,
+  triggerPlungerPing,
+  getPlungerStats
+} = require('./services/realtimeService');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Connect to Database
 connectDB();
 
-// Middleware with generous payload limit for image data
-app.use(cors());
+// Initialize WebSocket Server on the same HTTP server (/ws)
+initRealtimeServer(server);
+
+// Middleware with CORS support for Vercel Frontend + Render Backend
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+);
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
@@ -42,12 +60,32 @@ app.use('/api/upload', (req, res, next) => {
   itemRoutes(req, res, next);
 });
 
-// Health check endpoint for deployment monitoring
+// Health check & Keep-Alive Plunger status endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    service: 'Student Lost-and-Found API'
+    service: 'Student Lost-and-Found API',
+    plunger: getPlungerStats()
+  });
+});
+
+// Explicit Plunger trigger & status endpoint to keep Render instance warm
+app.get('/api/plunger', async (req, res) => {
+  const stats = getPlungerStats();
+  res.status(200).json({
+    success: true,
+    message: 'Render Keep-Alive Plunger is active',
+    data: stats
+  });
+});
+
+app.post('/api/plunger/ping', async (req, res) => {
+  const result = await triggerPlungerPing();
+  res.status(200).json({
+    success: true,
+    pingResult: result,
+    data: getPlungerStats()
   });
 });
 
@@ -75,13 +113,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server only when executed directly (not when required in tests)
+// Start Server & Keep-Alive Plunger when executed directly
 if (require.main === module) {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
+    startKeepAlivePlunger();
     console.log(`===============================================`);
     console.log(` Campus Lost & Found System running on port ${PORT}`);
     console.log(` Local URL: http://localhost:${PORT}`);
-    console.log(` Health Check: http://localhost:${PORT}/api/health`);
+    console.log(` WebSocket URL: ws://localhost:${PORT}/ws`);
+    console.log(` Health & Plunger: http://localhost:${PORT}/api/health`);
     console.log(`===============================================`);
   });
 }

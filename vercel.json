@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://student-lost-and-found.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://student-lost-and-found.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/((?!api|uploads|assets).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 const { Claim } = require('../models/Claim');
 const { Item } = require('../models/Item');
 const { AuditLog } = require('../models/AuditLog');
+const { broadcastEvent } = require('../services/realtimeService');
 
 /**
  * @desc    Submit verification claim on an item
@@ -44,6 +45,14 @@ exports.submitClaim = async (req, res) => {
       details: `Student @${req.user.username} submitted ownership claim on "${item.title}"`,
       ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
       severity: 'info'
+    });
+
+    broadcastEvent('CLAIM_SUBMITTED', {
+      claim: newClaim,
+      title: `New Claim Filed: ${item.title}`,
+      message: `@${req.user.username} submitted a verification claim on "${item.title}"`,
+      targetCreatorId: item.creator_id,
+      targetUsername: item.creator_username
     });
 
     res.status(201).json({
@@ -202,6 +211,15 @@ exports.updateClaimStatus = async (req, res) => {
       details: `@${req.user.username} ${status.toLowerCase()} claim from @${claim.claimant_username} for "${item.title}"`,
       ip_address: req.ip || '127.0.0.1',
       severity: 'info'
+    });
+
+    broadcastEvent('CLAIM_UPDATED', {
+      claim: updatedClaim,
+      status,
+      title: `Claim ${status}: ${item.title}`,
+      message: `Claim for "${item.title}" was ${status.toLowerCase()} by @${req.user.username}`,
+      targetClaimantId: claim.claimant_id,
+      targetUsername: claim.claimant_username
     });
 
     res.status(200).json({

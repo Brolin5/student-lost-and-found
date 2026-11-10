@@ -1,6 +1,7 @@
 const { Item } = require('../models/Item');
 const { AuditLog } = require('../models/AuditLog');
 const { findMatches } = require('../services/smartMatcher');
+const { broadcastEvent } = require('../services/realtimeService');
 
 /**
  * @desc    Get all items with optional filtering and search
@@ -144,6 +145,13 @@ exports.createItem = async (req, res) => {
       severity: 'info'
     });
 
+    // Broadcast real-time WebSocket event to all connected clients
+    broadcastEvent('ITEM_CREATED', {
+      item: newItem,
+      title: `New ${post_type} Report: ${newItem.title}`,
+      message: `@${effectiveUsername} reported "${newItem.title}" at ${newItem.location}`
+    });
+
     res.status(201).json({
       success: true,
       message: `${post_type} item reported successfully!`,
@@ -283,6 +291,14 @@ exports.updateItem = async (req, res) => {
       severity: 'info'
     });
 
+    broadcastEvent('ITEM_UPDATED', {
+      item: updatedItem,
+      title: `Item Updated: ${updatedItem.title}`,
+      message: isStatusOnly
+        ? `"${updatedItem.title}" marked as ${updatedItem.status}`
+        : `"${updatedItem.title}" was updated by @${username || 'user'}`
+    });
+
     res.status(200).json({
       success: true,
       message: 'Item updated successfully',
@@ -357,6 +373,12 @@ exports.deleteItem = async (req, res) => {
       details: `Post "${existing.title}" was permanently removed by @${username || 'user'}`,
       ip_address: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
       severity: 'info'
+    });
+
+    broadcastEvent('ITEM_DELETED', {
+      itemId: id,
+      title: `Post Removed: ${existing.title}`,
+      message: `"${existing.title}" was removed from the campus board`
     });
 
     res.status(200).json({

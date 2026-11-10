@@ -1,5 +1,21 @@
 [
   {
+    "_id": "item_mwaxxxs4b0cgp",
+    "title": "Casio FX-991EX Calculator",
+    "description": "Black scientific calculator left in Lecture Theatre 1",
+    "post_type": "Found",
+    "category": "Electronics",
+    "location": "Lecture Theatre 1",
+    "contact_info": "finder@nileuniversity.edu.ng",
+    "status": "Claimed",
+    "image_url": "",
+    "creator_id": "usr_mwaxxxaz10bg",
+    "creator_name": "Test Student User",
+    "creator_username": "teststudent_mwaxxx75",
+    "created_at": "2026-11-10T17:05:17.380Z",
+    "updated_at": "2026-11-10T17:05:17.404Z"
+  },
+  {
     "_id": "item_mwawswoe9okt1",
     "title": "Casio FX-991EX Calculator",
     "description": "Black scientific calculator left in Lecture Theatre 1",

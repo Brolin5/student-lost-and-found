@@ -118,5 +118,21 @@
     "password": "$2b$10$kjW4BacnMnhtUgwmOSWG2.jl.9ecwgqpMgrNjGsVi75idL9L2YlQe",
     "role": "student",
     "created_at": "2026-11-10T16:33:22.901Z"
+  },
+  {
+    "_id": "usr_mwaxxxaz10bg",
+    "username": "teststudent_mwaxxx75",
+    "name": "Test Student User",
+    "password": "$2b$10$ogg49N/2nqu4x1l/85Qa2u2Nfu5cAwUcY3ltKlUvsZz1hGklk06Jq",
+    "role": "student",
+    "created_at": "2026-11-10T17:05:16.763Z"
+  },
+  {
+    "_id": "usr_mwaxxxnjc3pr",
+    "username": "otherstudent_mwaxxxjn",
+    "name": "Other Student",
+    "password": "$2b$10$HgPWKqZfVANnLxl9.0LCyO6YJeXNM7cDhEhhsKjzXXeYVdxnH9sBG",
+    "role": "student",
+    "created_at": "2026-11-10T17:05:17.215Z"
   }
 ]

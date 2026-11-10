@@ -38,10 +38,62 @@ import {
   ScanSearch,
   FileQuestion,
   PackagePlus,
-  SlidersHorizontal
+  SlidersHorizontal,
+  HelpCircle,
+  Radio,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
-const API_BASE = '/api';
+const RENDER_ORIGIN = 'https://student-lost-and-found.onrender.com';
+const isRemoteFrontend =
+  typeof window !== 'undefined' &&
+  (window.location.hostname.includes('vercel.app') ||
+   window.location.hostname.includes('netlify.app'));
+
+const API_BASE = isRemoteFrontend ? `${RENDER_ORIGIN}/api` : '/api';
+const WS_URL =
+  typeof window !== 'undefined'
+    ? isRemoteFrontend
+      ? 'wss://student-lost-and-found.onrender.com/ws'
+      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`
+    : '';
+
+const resolveImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads/') && isRemoteFrontend) {
+    return `${RENDER_ORIGIN}${url}`;
+  }
+  return url;
+};
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="hero-search"]',
+    title: 'Instant Campus Search & Filters',
+    description: 'Search by item name, lecture hall, or filter between Lost and Found posts in real time.'
+  },
+  {
+    target: '[data-tour="quick-actions"]',
+    title: '1-Tap Quick Actions',
+    description: 'Report a lost item, log something you found on campus, or open Smart Matches and Claims with one tap.'
+  },
+  {
+    target: '[data-tour="smart-matches"]',
+    title: 'Smart Match Radar',
+    description: 'Our similarity engine automatically pairs lost reports with found items using category, keywords, and location.'
+  },
+  {
+    target: '[data-tour="notifications-bell"]',
+    title: 'Live WebSocket Notification Tray',
+    description: 'Connected via real-time WebSockets to Render — receive instant alerts when matches or claim updates arrive.'
+  },
+  {
+    target: '[data-tour="bottom-dock"]',
+    title: 'Tactile Campus Navigation Dock',
+    description: 'Switch between Home, Matches, Claims, and Browse, or tap the center + button to post an item from anywhere.'
+  }
+];
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('nile_auth_token');
@@ -153,6 +205,15 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef(null);
 
+  // Real-Time WebSocket & Notification Tray State
+  const [realtimeNotifications, setRealtimeNotifications] = useState([]);
+  const [wsConnected, setWsConnected] = useState(false);
+
+  // Interactive Product Tour / Step-by-Step Walkthrough State
+  const [isTourOpen, setIsTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [tourRect, setTourRect] = useState(null);
+
   // Form states
   const [activeItem, setActiveItem] = useState(null);
   const [authMode, setAuthMode] = useState('login'); // login | register
@@ -236,8 +297,157 @@ export default function App() {
   useEffect(() => {
     if (currentUser) {
       loadData();
+      // Auto-launch step-by-step interactive walkthrough on first login
+      const tourDone = localStorage.getItem('nile_tour_completed_v1');
+      if (!tourDone) {
+        const timer = setTimeout(() => {
+          setActiveTab('home');
+          setTourStep(0);
+          setIsTourOpen(true);
+        }, 700);
+        return () => clearTimeout(timer);
+      }
     }
   }, [currentUser]);
+
+  // Keep-Alive Plunger + Real-Time WebSocket Connection to Render Backend
+  useEffect(() => {
+    // 1. Immediate & periodic Keep-Alive Plunger ping to prevent Render sleep
+    const pingBackendPlunger = () => {
+      fetch(`${API_BASE}/plunger`).catch(() => {});
+    };
+    pingBackendPlunger();
+    const plungerTimer = setInterval(pingBackendPlunger, 4 * 60 * 1000); // Every 4 minutes
+
+    // 2. WebSocket connection for instant Notification Tray updates
+    if (!currentUser || !WS_URL) {
+      return () => clearInterval(plungerTimer);
+    }
+
+    let ws = null;
+    let reconnectTimer = null;
+    let pingInterval = null;
+    let isUnmounted = false;
+
+    const connectWebSocket = () => {
+      if (isUnmounted) return;
+      try {
+        ws = new WebSocket(WS_URL);
+
+        ws.onopen = () => {
+          if (isUnmounted) return;
+          setWsConnected(true);
+          pingInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: 'PING' }));
+            }
+          }, 25000);
+        };
+
+        ws.onmessage = (event) => {
+          if (isUnmounted) return;
+          try {
+            const msg = JSON.parse(event.data);
+            if (!msg || !msg.type) return;
+
+            if (['ITEM_CREATED', 'ITEM_UPDATED', 'ITEM_DELETED', 'CLAIM_SUBMITTED', 'CLAIM_UPDATED'].includes(msg.type)) {
+              // Refresh live campus feed & claims silently
+              loadData(true);
+
+              const newAlert = {
+                id: msg.id || `rt-${Date.now()}`,
+                type: msg.type,
+                title: msg.data?.title || 'Campus Activity Update',
+                message: msg.data?.message || 'New update on the campus board',
+                timestamp: msg.timestamp || new Date().toISOString(),
+                unread: true
+              };
+
+              setRealtimeNotifications(prev => [newAlert, ...prev.slice(0, 14)]);
+            }
+          } catch (_) {}
+        };
+
+        ws.onclose = () => {
+          if (isUnmounted) return;
+          setWsConnected(false);
+          if (pingInterval) clearInterval(pingInterval);
+          reconnectTimer = setTimeout(connectWebSocket, 5000);
+        };
+
+        ws.onerror = () => {
+          if (ws) ws.close();
+        };
+      } catch (_) {
+        reconnectTimer = setTimeout(connectWebSocket, 6000);
+      }
+    };
+
+    connectWebSocket();
+
+    return () => {
+      isUnmounted = true;
+      clearInterval(plungerTimer);
+      if (pingInterval) clearInterval(pingInterval);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (ws) ws.close();
+    };
+  }, [currentUser]);
+
+  // Interactive Product Tour Spotlight Positioning
+  useEffect(() => {
+    if (!isTourOpen) {
+      setTourRect(null);
+      return;
+    }
+
+    const stepConfig = TOUR_STEPS[tourStep];
+    if (!stepConfig) return;
+
+    const updateSpotlight = () => {
+      const el = document.querySelector(stepConfig.target);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setTourRect({
+          top: rect.top - 6,
+          left: rect.left - 6,
+          width: rect.width + 12,
+          height: rect.height + 12,
+          bottom: rect.bottom + 6
+        });
+      } else {
+        setTourRect(null);
+      }
+    };
+
+    const targetEl = document.querySelector(stepConfig.target);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const timer = setTimeout(updateSpotlight, 260);
+    updateSpotlight();
+
+    window.addEventListener('resize', updateSpotlight);
+    window.addEventListener('scroll', updateSpotlight, true);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateSpotlight);
+      window.removeEventListener('scroll', updateSpotlight, true);
+    };
+  }, [isTourOpen, tourStep, activeTab]);
+
+  const startProductTour = () => {
+    setActiveTab('home');
+    setIsNotificationsOpen(false);
+    setTourStep(0);
+    setIsTourOpen(true);
+  };
+
+  const closeProductTour = () => {
+    setIsTourOpen(false);
+    localStorage.setItem('nile_tour_completed_v1', 'true');
+  };
 
   // Click outside & Escape listener for notification popover
   useEffect(() => {
@@ -574,7 +784,8 @@ export default function App() {
     return matchesList.sort((a, b) => b.score - a.score);
   }, [items]);
 
-  const totalNotificationsCount = smartMatches.length + claims.length;
+  const unreadRealtimeCount = realtimeNotifications.filter(n => n.unread).length;
+  const totalNotificationsCount = smartMatches.length + claims.length + unreadRealtimeCount;
   const isAdmin = currentUser?.role === 'admin';
 
   // -------------------------------------------------------------------------
@@ -605,7 +816,7 @@ export default function App() {
           </div>
 
           {/* Soft Embossed Card Container */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 soft-embossed-card space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 soft-embossed-card space-y-5">
             <form onSubmit={handleAuthSubmit} className="space-y-3.5">
               {authMode === 'register' && (
                 <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl soft-input-pill">
@@ -679,49 +890,50 @@ export default function App() {
               </button>
             </form>
 
-            {/* OR CONTINUE WITH Divider */}
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E2E8F0]"></div>
+            {/* Clean Flex Divider (Zero white box cutout artifact) */}
+            <div className="pt-1 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-[#E2E8F0]"></div>
+                <span className="text-[11px] font-semibold text-[#64748B]">
+                  Quick Demo Access
+                </span>
+                <div className="h-px flex-1 bg-[#E2E8F0]"></div>
               </div>
-              <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest text-[#94A3B8]">
-                <span className="bg-white px-3">or continue with</span>
-              </div>
-            </div>
 
-            {/* Soft Embossed Quick-Login Buttons */}
-            <div className="grid grid-cols-3 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('tunde', 'password123')}
-                className="py-2.5 px-2 rounded-2xl soft-quick-btn text-xs font-bold text-[#1E4FA3] flex items-center justify-center gap-1 btn-spring hover:border-[#1E4FA3] cursor-pointer"
-                title="Login as student Tunde"
-              >
-                <User className="w-3.5 h-3.5 text-[#1E4FA3]" />
-                <span>@tunde</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('chioma', 'password123')}
-                className="py-2.5 px-2 rounded-2xl soft-quick-btn text-xs font-bold text-[#1E4FA3] flex items-center justify-center gap-1 btn-spring hover:border-[#1E4FA3] cursor-pointer"
-                title="Login as student Chioma"
-              >
-                <User className="w-3.5 h-3.5 text-[#1E4FA3]" />
-                <span>@chioma</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin', 'admin123')}
-                className="py-2.5 px-2 rounded-2xl bg-[#1E4FA3] text-white text-xs font-bold flex items-center justify-center gap-1 btn-spring shadow-xs hover:bg-[#16397A] cursor-pointer"
-                title="Login as Administrator"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                <span>@admin</span>
-              </button>
+              {/* Uniform Tactile Quick-Login Pills */}
+              <div className="grid grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('tunde', 'password123')}
+                  className="py-2.5 px-2 rounded-xl soft-quick-btn text-xs font-bold text-[#1E4FA3] flex items-center justify-center gap-1.5 btn-spring cursor-pointer"
+                  title="Login as student Tunde"
+                >
+                  <User className="w-3.5 h-3.5 text-[#1E4FA3]" />
+                  <span>@tunde</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('chioma', 'password123')}
+                  className="py-2.5 px-2 rounded-xl soft-quick-btn text-xs font-bold text-[#1E4FA3] flex items-center justify-center gap-1.5 btn-spring cursor-pointer"
+                  title="Login as student Chioma"
+                >
+                  <User className="w-3.5 h-3.5 text-[#1E4FA3]" />
+                  <span>@chioma</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('admin', 'admin123')}
+                  className="py-2.5 px-2 rounded-xl soft-quick-btn text-xs font-bold text-[#16397A] flex items-center justify-center gap-1.5 btn-spring cursor-pointer"
+                  title="Login as Administrator"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#1E4FA3]" />
+                  <span>@admin</span>
+                </button>
+              </div>
             </div>
 
             {/* Toggle Mode Link (Sign Up / Sign In) */}
-            <div className="pt-2 text-center text-xs text-[#6B7280]">
+            <div className="pt-1 text-center text-xs text-[#6B7280]">
               {authMode === 'login' ? (
                 <p>
                   Don't have an account?{' '}
@@ -781,14 +993,14 @@ export default function App() {
   // 2. AUTHENTICATED MOBILE-FIRST UI (Professional Affordance & Nile Theme)
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-white text-[#1F2328] pb-24 font-sans relative selection:bg-[#EEF2F9] selection:text-[#1E4FA3]">
+    <div className="min-h-screen bg-white text-[#1F2328] pb-28 font-sans relative selection:bg-[#EEF2F9] selection:text-[#1E4FA3]">
       {/* Top Nile Blue Accent Strip */}
       <div className="h-1.5 w-full bg-[#1E4FA3]"></div>
 
       {/* ---------------------------------------------------- */}
       {/* 2.1 Sticky Top App Bar (56px) */}
       {/* ---------------------------------------------------- */}
-      <header className="bg-white border-b border-[#E5E9F2] sticky top-0 z-40 shadow-xs h-14">
+      <header className="bg-white/95 backdrop-blur-md border-b border-[#E5E9F2] sticky top-0 z-40 h-14">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
           {/* Logo & Brand with Crisp Vector SVG Logo */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
@@ -808,68 +1020,94 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Header: Notification Popover, Clean Session Pill, and Sign Out */}
-          <div className="flex items-center gap-2">
-            {/* Notification Bell with Flyout Popover */}
-            <div className="relative" ref={notificationsRef}>
+          {/* Right Header: Guided Tour, Notification Tray, Session Pill, and Sign Out */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Step-by-Step Interactive Walkthrough / Tour Trigger */}
+            <button
+              onClick={startProductTour}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#EEF2F9] hover:bg-[#DBEAFE] text-[#1E4FA3] text-[11px] font-bold transition-colors btn-spring cursor-pointer border border-[#DBEAFE]"
+              title="Start Step-by-Step Guided Tour"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline sm:inline">Guide</span>
+            </button>
+
+            {/* Notification Tray Bell with Real-Time WebSockets */}
+            <div className="relative" ref={notificationsRef} data-tour="notifications-bell">
               <button
-                onClick={() => setIsNotificationsOpen(prev => !prev)}
+                onClick={() => {
+                  setIsNotificationsOpen(prev => !prev);
+                  setRealtimeNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+                }}
                 className={`relative p-2 rounded-full transition-colors btn-spring cursor-pointer ${
                   isNotificationsOpen
                     ? 'bg-[#1E4FA3] text-white shadow-xs'
                     : 'hover:bg-[#EEF2F9] text-[#6B7280] hover:text-[#1E4FA3]'
                 }`}
-                title="Notifications & Activity"
+                title="Live Notification Tray"
                 aria-expanded={isNotificationsOpen}
               >
                 <Bell className="w-4 h-4" />
                 {totalNotificationsCount > 0 && (
-                  <span className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                    isNotificationsOpen ? 'bg-amber-300 ring-2 ring-[#1E4FA3]' : 'bg-[#1E4FA3] ring-2 ring-white'
-                  }`}></span>
+                  <span className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-mono tabular-nums font-bold flex items-center justify-center ${
+                    isNotificationsOpen
+                      ? 'bg-white text-[#1E4FA3]'
+                      : 'bg-[#1E4FA3] text-white ring-2 ring-white'
+                  }`}>
+                    {totalNotificationsCount > 9 ? '9+' : totalNotificationsCount}
+                  </span>
                 )}
               </button>
 
-              {/* Notification Popover Flyout */}
+              {/* Notification Tray Flyout */}
               {isNotificationsOpen && (
                 <div
-                  className="absolute right-0 top-full mt-2 w-[calc(100vw-32px)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-[#E5E9F2] z-50 p-4 animate-dropdown-in origin-top-right overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-[calc(100vw-32px)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-xl border border-[#DBEAFE] z-50 p-4 animate-dropdown-in origin-top-right overflow-hidden"
                   role="dialog"
-                  aria-label="Notifications Panel"
+                  aria-label="Notification Tray"
                 >
-                  {/* Flyout Header */}
+                  {/* Tray Header */}
                   <div className="flex items-center justify-between pb-3 border-b border-[#E5E9F2]">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-[#EEF2F9] flex items-center justify-center text-[#1E4FA3]">
+                      <div className="w-8 h-8 rounded-xl bg-[#EEF2F9] flex items-center justify-center text-[#1E4FA3]">
                         <Bell className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="font-heading font-bold text-sm text-[#1F2328] leading-tight">
-                          Campus Alerts
-                        </h3>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-heading font-bold text-sm text-[#1F2328] leading-tight">
+                            Notification Tray
+                          </h3>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#EEF2F9] text-[#1E4FA3] border border-[#DBEAFE]">
+                            <Radio className="w-2.5 h-2.5" />
+                            {wsConnected ? 'Live' : 'Sync'}
+                          </span>
+                        </div>
                         <p className="text-[10px] text-[#6B7280]">
-                          Smart matches & claim status
+                          Real-time WebSocket radar & claims
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {totalNotificationsCount > 0 && (
-                        <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-full bg-[#1E4FA3] text-white">
-                          {totalNotificationsCount} active
-                        </span>
+                    <div className="flex items-center gap-1.5">
+                      {realtimeNotifications.length > 0 && (
+                        <button
+                          onClick={() => setRealtimeNotifications([])}
+                          className="text-[10px] font-semibold text-[#1E4FA3] hover:underline px-1.5 py-0.5 cursor-pointer"
+                        >
+                          Clear
+                        </button>
                       )}
                       <button
                         onClick={() => setIsNotificationsOpen(false)}
                         className="p-1 rounded-md text-[#6B7280] hover:text-[#1F2328] hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Close notifications"
+                        title="Close notification tray"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  {/* Flyout Body */}
-                  {totalNotificationsCount === 0 ? (
+                  {/* Tray Body */}
+                  {totalNotificationsCount === 0 && realtimeNotifications.length === 0 ? (
                     <div className="py-8 px-4 text-center">
                       <div className="w-11 h-11 rounded-full bg-[#F8FAFC] border border-[#E5E9F2] mx-auto flex items-center justify-center text-[#1E4FA3] mb-2.5">
                         <CheckCircle2 className="w-5 h-5" />
@@ -878,14 +1116,54 @@ export default function App() {
                         All Caught Up!
                       </h4>
                       <p className="text-xs text-[#6B7280] mt-1 max-w-[240px] mx-auto">
-                        No pending matches or claim status updates right now. You'll be notified automatically!
+                        Live WebSocket radar is listening. Instant alerts will appear here the moment a match is reported.
                       </p>
                     </div>
                   ) : (
                     <div className="max-h-[340px] overflow-y-auto py-2 space-y-3.5 pr-1 divide-y divide-[#F1F5F9]">
+                      {/* Section 0: Real-Time WebSocket Broadcast Stream */}
+                      {realtimeNotifications.length > 0 && (
+                        <div className="space-y-2 pt-1 first:pt-0">
+                          <div className="flex items-center justify-between text-xs font-bold text-[#6B7280] uppercase tracking-wider px-1">
+                            <span className="flex items-center gap-1.5 text-[#1E4FA3]">
+                              <Radio className="w-3.5 h-3.5" />
+                              Live Campus Stream ({realtimeNotifications.length})
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {realtimeNotifications.slice(0, 4).map((evt) => (
+                              <div
+                                key={evt.id}
+                                onClick={() => {
+                                  if (evt.type.startsWith('CLAIM')) {
+                                    setActiveTab('claims');
+                                  } else {
+                                    setActiveTab('home');
+                                  }
+                                  setIsNotificationsOpen(false);
+                                }}
+                                className="p-2.5 rounded-xl bg-[#EEF2F9]/60 hover:bg-[#EEF2F9] border border-[#DBEAFE] transition-all cursor-pointer group btn-spring"
+                              >
+                                <div className="flex items-center justify-between gap-2 mb-0.5">
+                                  <span className="text-[10px] font-bold text-[#1E4FA3] uppercase tracking-wide">
+                                    {evt.title}
+                                  </span>
+                                  <span className="text-[9px] font-mono tabular-nums text-[#64748B]">
+                                    Just now
+                                  </span>
+                                </div>
+                                <p className="text-xs text-[#1F2328] line-clamp-2">
+                                  {evt.message}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Section 1: Smart Match Alerts */}
                       {smartMatches.length > 0 && (
-                        <div className="space-y-2 pt-1 first:pt-0">
+                        <div className="space-y-2 pt-2 first:pt-0">
                           <div className="flex items-center justify-between text-xs font-bold text-[#6B7280] uppercase tracking-wider px-1">
                             <span className="flex items-center gap-1.5 text-[#1E4FA3]">
                               <ScanSearch className="w-3.5 h-3.5" />
@@ -1018,7 +1296,7 @@ export default function App() {
             {/* Sign Out with Confirmation Modal Trigger */}
             <button
               onClick={() => setIsSignOutConfirmOpen(true)}
-              className="p-2 rounded-full hover:bg-rose-50 text-[#6B7280] hover:text-[#F25C54] transition-colors btn-spring"
+              className="p-2 rounded-full hover:bg-rose-50 text-[#6B7280] hover:text-[#F25C54] transition-colors btn-spring cursor-pointer"
               title="Sign out of student session"
             >
               <LogOut className="w-4 h-4" />
@@ -1030,7 +1308,7 @@ export default function App() {
       {/* ---------------------------------------------------- */}
       {/* 2.2 Main View Switcher based on Active Tab */}
       {/* ---------------------------------------------------- */}
-      {activeTab === 'home' && (
+      {(activeTab === 'home' || activeTab === 'browse') && (
         <div>
           {/* MARCELO DESIGN X DARK HERO GRADIENT */}
           <section className="hero-nile-gradient text-white pt-8 pb-14 px-4 sm:px-6">
@@ -1056,57 +1334,59 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Large Rounded Search Bar */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-[#6B7280] absolute left-4 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search: Casio calculator, student ID, keys, laptop..."
-                  className="w-full bg-white text-[#1F2328] placeholder-[#6B7280] rounded-2xl pl-11 pr-10 py-3.5 text-xs font-medium focus:outline-none shadow-lg"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#1F2328]"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+              {/* Large Rounded Search Bar & Filter Pills */}
+              <div className="space-y-3" data-tour="hero-search">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-[#6B7280] absolute left-4 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search: Casio calculator, student ID, keys, laptop..."
+                    className="w-full bg-white text-[#1F2328] placeholder-[#6B7280] rounded-2xl pl-11 pr-10 py-3.5 text-xs font-medium focus:outline-none shadow-lg"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#1F2328]"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
 
-              {/* Segmented Filter Pills (All | Lost | Found) */}
-              <div className="flex items-center gap-2">
-                {['All', 'Lost', 'Found'].map(type => (
+                {/* Segmented Filter Pills (All | Lost | Found) */}
+                <div className="flex items-center gap-2">
+                  {['All', 'Lost', 'Found'].map(type => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedType(type)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all btn-spring cursor-pointer ${
+                        selectedType === type
+                          ? 'bg-white text-[#1E4FA3] shadow-sm'
+                          : 'bg-white/15 text-white/90 border border-white/20 hover:bg-white/25'
+                      }`}
+                    >
+                      {type === 'All' ? 'All Items' : type}
+                    </button>
+                  ))}
+
                   <button
-                    key={type}
-                    onClick={() => setSelectedType(type)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all btn-spring ${
-                      selectedType === type
-                        ? 'bg-white text-[#1E4FA3] shadow-sm'
-                        : 'bg-white/15 text-white/90 border border-white/20 hover:bg-white/25'
+                    onClick={() => setMyItemsOnly(prev => !prev)}
+                    className={`ml-auto px-3 py-1.5 rounded-full text-xs font-semibold transition-all btn-spring cursor-pointer ${
+                      myItemsOnly
+                        ? 'bg-white text-[#1E4FA3] shadow-sm font-bold'
+                        : 'bg-white/15 text-white/90 border border-white/20'
                     }`}
                   >
-                    {type === 'All' ? 'All Items' : type}
+                    {myItemsOnly ? 'My Posts Only' : 'My Posts'}
                   </button>
-                ))}
-
-                <button
-                  onClick={() => setMyItemsOnly(prev => !prev)}
-                  className={`ml-auto px-3 py-1.5 rounded-full text-xs font-semibold transition-all btn-spring ${
-                    myItemsOnly
-                      ? 'bg-white text-[#1E4FA3] shadow-sm font-bold'
-                      : 'bg-white/15 text-white/90 border border-white/20'
-                  }`}
-                >
-                  {myItemsOnly ? 'My Posts Only' : 'My Posts'}
-                </button>
+                </div>
               </div>
 
               {/* FOUR PROFESSIONAL CLICKABLE ACTION BUTTON CARDS */}
               {/* Designed with tactile card borders, hover lift, inner icon squircle tile & clear clickability */}
-              <div className="grid grid-cols-4 gap-3 pt-2">
+              <div className="grid grid-cols-4 gap-3 pt-2" data-tour="quick-actions">
                 {/* 1. Report Lost Button */}
                 <button
                   type="button"
@@ -1187,8 +1467,8 @@ export default function App() {
             </div>
           </section>
 
-          {/* WHITE SHEET OVERLAPPING THE HERO (28px radius) */}
-          <section className="-mt-6 bg-white sheet-overlap-top border-t border-[#E5E9F2] px-4 sm:px-6 pt-6 max-w-5xl mx-auto shadow-2xl">
+          {/* WHITE SHEET OVERLAPPING THE HERO (28px radius, zero bottom shadow bleed) */}
+          <section id="campus-directory-section" className="-mt-6 bg-white sheet-overlap-top border-t border-[#E5E9F2] px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto">
             {/* Quick Category Chips with Lucide Icons (Zero emojis) */}
             <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
               {CATEGORIES.map(cat => {
@@ -1198,7 +1478,7 @@ export default function App() {
                   <button
                     key={cat.value}
                     onClick={() => setSelectedCategory(cat.value)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all btn-spring ${
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all btn-spring cursor-pointer ${
                       isSelected
                         ? 'bg-[#1E4FA3] text-white shadow-sm'
                         : 'bg-[#EEF2F9] text-[#1F2328] hover:bg-slate-200/80 border border-[#E5E9F2]'
@@ -1214,6 +1494,7 @@ export default function App() {
             {/* Smart Match Banner with Professional ScanSearch Icon (Zero Sparkles) */}
             {smartMatches.length > 0 && (
               <div
+                data-tour="smart-matches"
                 onClick={() => setActiveTab('matches')}
                 className="mb-6 p-4 rounded-2xl bg-[#EEF2F9] border border-[#1E4FA3]/20 flex items-center justify-between gap-3 cursor-pointer hover:bg-[#E5EDFB] transition-colors btn-spring"
               >
@@ -1238,7 +1519,7 @@ export default function App() {
             )}
 
             {/* Feed Header with Custom Status Dropdown */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4" {...(smartMatches.length === 0 ? { 'data-tour': 'smart-matches' } : {})}>
               <div>
                 <h3 className="font-heading font-extrabold text-lg text-[#1F2328] tracking-tight">
                   Recently Posted Items
@@ -1313,9 +1594,9 @@ export default function App() {
                         <div className="relative w-full h-44 bg-[#F8FAFC] overflow-hidden">
                           {item.image_url ? (
                             <img
-                              src={item.image_url}
+                              src={resolveImageUrl(item.image_url)}
                               alt={item.title}
-                              onClick={() => setLightboxImage({ url: item.image_url, title: item.title })}
+                              onClick={() => setLightboxImage({ url: resolveImageUrl(item.image_url), title: item.title })}
                               className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
                               loading="lazy"
                             />
@@ -1710,74 +1991,132 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.6 FLOATING PILL BOTTOM NAVIGATION (Role-Aware) */}
+      {/* 2.6 TACTILE FLOATING PILL BOTTOM NAVIGATION DOCK     */}
       {/* ---------------------------------------------------- */}
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md bg-white border border-[#E5E9F2] rounded-full p-1.5 floating-pill-nav flex items-center justify-between">
+      <nav
+        data-tour="bottom-dock"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-[430px] bg-white/95 backdrop-blur-xl border border-[#BFDBFE] ring-4 ring-[#EEF2F9]/80 rounded-full p-1.5 floating-pill-nav flex items-center justify-between gap-1"
+      >
         {/* Tab 1: Home */}
         <button
-          onClick={() => setActiveTab('home')}
-          className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
-            activeTab === 'home' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+          onClick={() => {
+            setActiveTab('home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
+            activeTab === 'home'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
           }`}
         >
-          <Home className="w-4 h-4" />
-          <span className="text-[9px] uppercase tracking-wider">Home</span>
+          <Home className="w-4 h-4" strokeWidth={activeTab === 'home' ? 2.4 : 1.9} />
+          <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'home' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
+            Home
+          </span>
+          {activeTab === 'home' && (
+            <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
+          )}
         </button>
 
         {/* Tab 2: Smart Matches */}
         <button
           onClick={() => setActiveTab('matches')}
-          className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
-            activeTab === 'matches' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+          className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
+            activeTab === 'matches'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
           }`}
         >
-          <ScanSearch className="w-4 h-4" />
-          <span className="text-[9px] uppercase tracking-wider">Matches</span>
+          <div className="relative">
+            <ScanSearch className="w-4 h-4" strokeWidth={activeTab === 'matches' ? 2.4 : 1.9} />
+            {smartMatches.length > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[15px] h-[15px] px-1 rounded-full bg-[#1E4FA3] text-white text-[8px] font-mono tabular-nums font-bold flex items-center justify-center ring-2 ring-white">
+                {smartMatches.length}
+              </span>
+            )}
+          </div>
+          <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'matches' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
+            Matches
+          </span>
+          {activeTab === 'matches' && (
+            <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
+          )}
         </button>
 
-        {/* CENTER RAISED + POST BUTTON */}
-        <button
-          onClick={() => setIsPostChooserOpen(true)}
-          className="w-12 h-12 rounded-full bg-[#1E4FA3] hover:bg-[#16397A] text-white flex items-center justify-center -translate-y-3 shadow-sm btn-spring shrink-0 mx-1 cursor-pointer"
-          title="Report Lost or Found Item"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
+        {/* CENTER SCULPTED + POST ACTION CRADLE */}
+        <div className="p-1 -my-4 bg-white rounded-full border border-[#BFDBFE] shadow-md shrink-0 mx-0.5">
+          <button
+            onClick={() => setIsPostChooserOpen(true)}
+            className="w-11 h-11 rounded-full btn-nile-pill text-white flex items-center justify-center btn-spring cursor-pointer group"
+            title="Report Lost or Found Item"
+          >
+            <Plus className="w-5 h-5 stroke-[2.6] group-hover:rotate-90 transition-transform duration-200" />
+          </button>
+        </div>
 
         {/* Tab 4: Claims */}
         <button
           onClick={() => setActiveTab('claims')}
-          className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
-            activeTab === 'claims' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+          className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
+            activeTab === 'claims'
+              ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
+              : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
           }`}
         >
-          <FileCheck className="w-4 h-4" />
-          <span className="text-[9px] uppercase tracking-wider">Claims</span>
+          <div className="relative">
+            <FileCheck className="w-4 h-4" strokeWidth={activeTab === 'claims' ? 2.4 : 1.9} />
+            {claims.length > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 min-w-[15px] h-[15px] px-1 rounded-full bg-[#DBEAFE] text-[#1E4FA3] text-[8px] font-mono tabular-nums font-bold flex items-center justify-center ring-2 ring-white">
+                {claims.length}
+              </span>
+            )}
+          </div>
+          <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'claims' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
+            Claims
+          </span>
+          {activeTab === 'claims' && (
+            <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
+          )}
         </button>
 
-        {/* Tab 5: Audit (Admins Only) / Directory (Students) */}
+        {/* Tab 5: Audit (Admins Only) / Browse (Students) */}
         {isAdmin ? (
           <button
             onClick={() => setActiveTab('audit')}
-            className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
-              activeTab === 'audit' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+            className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
+              activeTab === 'audit'
+                ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
+                : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
             }`}
           >
-            <Activity className="w-4 h-4" />
-            <span className="text-[9px] uppercase tracking-wider">Audit</span>
+            <Activity className="w-4 h-4" strokeWidth={activeTab === 'audit' ? 2.4 : 1.9} />
+            <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'audit' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
+              Audit
+            </span>
+            {activeTab === 'audit' && (
+              <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
+            )}
           </button>
         ) : (
           <button
             onClick={() => {
-              setActiveTab('home');
-              window.scrollTo({ top: 400, behavior: 'smooth' });
+              setActiveTab('browse');
+              const el = document.getElementById('campus-directory-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
-            className={`flex-1 py-1.5 flex flex-col items-center gap-0.5 rounded-full transition-all btn-spring ${
-              activeTab === 'home' && selectedType !== 'All' ? 'text-[#1E4FA3] font-bold' : 'text-[#6B7280]'
+            className={`flex-1 py-2 px-2 flex flex-col items-center justify-center gap-0.5 rounded-full transition-all btn-spring cursor-pointer relative ${
+              activeTab === 'browse'
+                ? 'bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] shadow-2xs'
+                : 'text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#F8FAFC] border border-transparent'
             }`}
           >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span className="text-[9px] uppercase tracking-wider">Browse</span>
+            <SlidersHorizontal className="w-4 h-4" strokeWidth={activeTab === 'browse' ? 2.4 : 1.9} />
+            <span className={`text-[10px] tracking-wide leading-none mt-0.5 ${activeTab === 'browse' ? 'font-heading font-extrabold' : 'font-semibold'}`}>
+              Browse
+            </span>
+            {activeTab === 'browse' && (
+              <span className="w-3.5 h-0.5 rounded-full bg-[#1E4FA3] mt-0.5"></span>
+            )}
           </button>
         )}
       </nav>
@@ -2021,7 +2360,120 @@ export default function App() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* 2.13 FLOATING TOASTS */}
+      {/* 2.13 INTERACTIVE SPOTLIGHT PRODUCT TOUR (WALKTHROUGH) */}
+      {/* ---------------------------------------------------- */}
+      {isTourOpen && TOUR_STEPS[tourStep] && (
+        <div className="fixed inset-0 z-50 pointer-events-auto overflow-hidden">
+          {/* Spotlight Cutout Ring around the active DOM element */}
+          {tourRect ? (
+            <div
+              onClick={closeProductTour}
+              style={{
+                top: `${Math.max(4, tourRect.top)}px`,
+                left: `${Math.max(4, tourRect.left)}px`,
+                width: `${tourRect.width}px`,
+                height: `${tourRect.height}px`
+              }}
+              className="fixed rounded-2xl tour-spotlight-ring pointer-events-none"
+            />
+          ) : (
+            <div
+              onClick={closeProductTour}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+            />
+          )}
+
+          {/* Floating Step-by-Step Coach Mark Card */}
+          <div
+            style={
+              tourRect
+                ? {
+                    top:
+                      tourRect.top > (typeof window !== 'undefined' ? window.innerHeight * 0.52 : 380)
+                        ? `${Math.max(16, tourRect.top - 196)}px`
+                        : `${Math.min((typeof window !== 'undefined' ? window.innerHeight - 210 : 500), tourRect.bottom + 14)}px`,
+                    left: '50%',
+                    transform: 'translateX(-50%)'
+                  }
+                : {
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }
+            }
+            className="fixed w-[calc(100vw-32px)] max-w-sm bg-white rounded-2xl border border-[#BFDBFE] p-5 shadow-2xl z-50 transition-all duration-300 animate-dropdown-in space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#EEF2F9] text-[#1E4FA3] border border-[#BFDBFE] text-[10px] font-mono tabular-nums font-bold uppercase tracking-wider">
+                Step {tourStep + 1} of {TOUR_STEPS.length}
+              </span>
+
+              {/* Progress Dots */}
+              <div className="flex items-center gap-1">
+                {TOUR_STEPS.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`h-1.5 rounded-full transition-all ${
+                      idx === tourStep ? 'w-5 bg-[#1E4FA3]' : 'w-1.5 bg-[#DBEAFE]'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={closeProductTour}
+                className="text-[11px] font-semibold text-[#64748B] hover:text-[#1F2328] cursor-pointer"
+              >
+                Skip
+              </button>
+            </div>
+
+            <div>
+              <h4 className="font-heading font-extrabold text-sm text-[#16397A]">
+                {TOUR_STEPS[tourStep].title}
+              </h4>
+              <p className="text-xs text-[#6B7280] leading-relaxed mt-1">
+                {TOUR_STEPS[tourStep].description}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-[#F1F5F9]">
+              <button
+                type="button"
+                disabled={tourStep === 0}
+                onClick={() => setTourStep(prev => Math.max(0, prev - 1))}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#64748B] hover:text-[#1E4FA3] hover:bg-[#EEF2F9] disabled:opacity-35 transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Back</span>
+              </button>
+
+              {tourStep < TOUR_STEPS.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setTourStep(prev => prev + 1)}
+                  className="px-4 py-1.5 rounded-xl btn-nile-pill text-white text-xs font-heading font-bold flex items-center gap-1 btn-spring cursor-pointer"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={closeProductTour}
+                  className="px-4 py-1.5 rounded-xl btn-nile-pill text-white text-xs font-heading font-bold flex items-center gap-1.5 btn-spring cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Finish Tour</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------- */}
+      {/* 2.14 FLOATING TOASTS */}
       {/* ---------------------------------------------------- */}
       <div className="fixed top-4 right-4 z-50 space-y-2 pointer-events-none">
         {toasts.map(toast => (
