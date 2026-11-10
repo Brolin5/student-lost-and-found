@@ -1519,7 +1519,7 @@ export default function App() {
             )}
 
             {/* Feed Header with Custom Status Dropdown */}
-            <div className="flex items-center justify-between mb-4" {...(smartMatches.length === 0 ? { 'data-tour': 'smart-matches' } : {})}>
+            <div className="relative z-30 flex items-center justify-between mb-4" {...(smartMatches.length === 0 ? { 'data-tour': 'smart-matches' } : {})}>
               <div>
                 <h3 className="font-heading font-extrabold text-lg text-[#1F2328] tracking-tight">
                   Recently Posted Items
@@ -1587,11 +1587,11 @@ export default function App() {
                     <div
                       key={id}
                       style={{ animationDelay: `${Math.min(idx * 30, 240)}ms` }}
-                      className="stagger-item bg-white rounded-2xl border border-[#E5E9F2] hover:border-[#CBD5E1] card-hover-spring flex flex-col justify-between overflow-hidden shadow-nile-card"
+                      className="relative stagger-item bg-white rounded-2xl border border-[#E5E9F2] hover:border-[#CBD5E1] card-hover-spring flex flex-col justify-between overflow-visible focus-within:z-40 hover:z-20 shadow-nile-card"
                     >
                       <div>
                         {/* 4:3 Photo Area */}
-                        <div className="relative w-full h-44 bg-[#F8FAFC] overflow-hidden">
+                        <div className="relative w-full h-44 bg-[#F8FAFC] rounded-t-2xl overflow-hidden">
                           {item.image_url ? (
                             <img
                               src={resolveImageUrl(item.image_url)}
@@ -1695,9 +1695,10 @@ export default function App() {
 
                       {/* Card Footer: Owner Controls with Custom Dropdown */}
                       {isOwner && (
-                        <div className="p-3 bg-[#F8FAFC] border-t border-[#E5E9F2] flex items-center justify-between gap-2">
+                        <div className="p-3 bg-[#F8FAFC] border-t border-[#E5E9F2] rounded-b-2xl flex items-center justify-between gap-2">
                           <div className="flex-1">
                             <CustomSelect
+                              dropUp={true}
                               value={item.status}
                               onChange={(val) => handleQuickStatusChange(item, val)}
                               options={[
@@ -2503,7 +2504,7 @@ export default function App() {
 // -----------------------------------------------------------------------------
 // CUSTOM SELECT COMPONENT (Custom Dropdowns with Zero Native <select> tags)
 // -----------------------------------------------------------------------------
-function CustomSelect({ value, onChange, options, placeholder = 'Select...', className = '' }) {
+function CustomSelect({ value, onChange, options, placeholder = 'Select...', className = '', dropUp = false }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
 
@@ -2520,11 +2521,11 @@ function CustomSelect({ value, onChange, options, placeholder = 'Select...', cla
   const selectedOption = options.find(o => o.value === value) || options[0];
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${open ? 'z-50' : 'z-10'} ${className}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full bg-white border border-[#E5E9F2] hover:border-[#1E4FA3] rounded-xl px-3 py-2 text-xs font-semibold text-[#1F2328] flex items-center justify-between gap-2 shadow-2xs btn-spring focus:outline-none"
+        className="w-full bg-white border border-[#E5E9F2] hover:border-[#1E4FA3] rounded-xl px-3 py-2 text-xs font-semibold text-[#1F2328] flex items-center justify-between gap-2 shadow-2xs btn-spring focus:outline-none cursor-pointer"
       >
         <div className="flex items-center gap-2 truncate">
           {selectedOption?.icon && (
@@ -2536,7 +2537,11 @@ function CustomSelect({ value, onChange, options, placeholder = 'Select...', cla
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 mt-1.5 z-50 bg-white border border-[#E5E9F2] rounded-xl shadow-xl p-1 animate-dropdown-in min-w-[140px] max-h-56 overflow-y-auto">
+        <div
+          className={`absolute left-0 right-0 z-50 bg-white border border-[#DBEAFE] rounded-xl shadow-xl p-1 animate-dropdown-in min-w-[140px] max-h-56 overflow-y-auto ${
+            dropUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
           {options.map(opt => (
             <button
               key={opt.value}
